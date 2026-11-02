@@ -1,0 +1,27 @@
+---
+title: "Accueil"
+description: "Documentation personnelle : procédures, projets et outils"
+published: true
+date: 2026-11-02T12:00:00.000Z
+tags: accueil
+editor: markdown
+dateCreated: 2026-11-02T12:00:00.000Z
+---
+
+Documentation personnelle, modifiable dans le navigateur et synchronisée avec le dépôt GitHub `augustinde/wiki`.
+
+## Sections
+
+| Section | Contenu |
+| --- | --- |
+| [k3s-lab](/k3s-lab) | Environnement k3s rejouable sur VPS OVH : mise en route, procédure, exploitation, référence |
+| [Outils](/outils/wiki) | Ce wiki : installation, synchronisation git, ajout de pages |
+
+## Ajouter une section
+
+Une section, c'est un dossier de chemins : `homelab/jarvis`, `team-peps/deploiement`, `freelance/devis`…
+
+- **Dans le navigateur** : bouton **Nouvelle page** en haut à droite, saisis le chemin complet (par exemple `homelab/jarvis/proxmox`), éditeur **Markdown**.
+- **Dans le dépôt** : crée `homelab/jarvis/proxmox.md` avec l'en-tête décrit dans [Outils · Wiki](/outils/wiki), puis commit et push.
+
+Ajoute ensuite la section au tableau ci-dessus.
