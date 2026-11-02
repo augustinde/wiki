@@ -14,16 +14,18 @@ Ce wiki tourne sur ton PC : Wiki.js 2.5 et PostgreSQL dans Docker, sur `http://l
 
 | Élément | Emplacement |
 | --- | --- |
-| Pile Docker | dossier `docker/` de ce dépôt (`~/wiki/docker` dans WSL) : `compose.yaml`, `.env` local (mot de passe de la base, ignoré par git) |
+| Pile Docker | dossier `docker/` de ce dépôt (`F:\Projects\wiki\docker`), lancé par Docker Desktop : `compose.yaml`, `.env` local (mot de passe de la base, ignoré par git) |
 | Contenu | dépôt `augustinde/wiki`, un fichier `.md` par page, un dossier par section |
 | Base PostgreSQL | volume Docker `wiki-stack_db-data` : comptes, réglages, index de recherche |
 | Clé de synchronisation | clé SSH de déploiement du dépôt, collée dans Administration, Stockage, Git |
 
 ## Commandes
 
-```bash
-cd ~/wiki/docker
-docker compose up -d          # démarrer (redémarre seul ensuite avec Docker)
+Dans PowerShell :
+
+```powershell
+cd F:\Projects\wiki\docker
+docker compose up -d          # démarrer (redémarre ensuite avec Docker Desktop)
 docker compose ps             # état : wiki et db en "running", db en "healthy"
 docker compose logs -f wiki   # journal, dont la synchronisation git
 docker compose down           # arrêter (les données restent dans les volumes)
@@ -69,7 +71,7 @@ Les images vont dans le dépôt à côté des pages (par exemple `homelab/assets
 ## Mettre à jour Wiki.js
 
 1. Dans `docker/compose.yaml`, remplace la version de l'image `ghcr.io/requarks/wiki` par la nouvelle (liste sur la page *Releases* du projet requarks/wiki).
-2. Commit et push de ce changement, puis dans `~/wiki/docker` : `git pull && docker compose pull && docker compose up -d`
+2. Commit et push de ce changement, puis dans `F:\Projects\wiki\docker` : `git pull`, `docker compose pull`, `docker compose up -d`
 
 > **Vérifier** · `docker compose ps` montre `wiki` en `running`, et Administration, **Informations système** affiche la nouvelle version.
 {.is-success}
