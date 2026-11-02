@@ -8,38 +8,41 @@ editor: markdown
 dateCreated: 2026-11-02T12:00:00.000Z
 ---
 
-Le dépôt `k3s-lab` sépare la machine (`ansible/`), le cluster (`helmfile/`) et l'accès GitHub (`scripts/`).
+Le dépôt d'un projet (copie du modèle `k3s-lab`) sépare les valeurs du projet (`environments/`), les tailles de machine (`profiles/`), la machine (`ansible/`), le cluster (`helmfile/`) et l'accès GitHub (`scripts/`, `ci/`). Seul `environments/` diffère d'un projet à l'autre.
 
 ```text
-k3s-lab/
-├── Makefile                        point d'entrée unique (make help)
-├── .sops.yaml                      clé age pour chiffrer les *.secrets.yaml
+<projet>/
+├── Makefile                        point d'entrée unique (make help) ; lit environments/<env>/
+├── .sops.yaml                      clé age publique qui chiffre environments/*/secrets.yaml
+├── environments/
+│   ├── example/                    modèle copié par make init (valeurs à remplacer)
+│   └── <env>/                      un dossier par serveur
+│       ├── values.yaml             cluster, profil, zone, tunnel, maintenance, namespaces, bases, services
+│       ├── inventory.yml           IP et utilisateur SSH du serveur
+│       ├── secrets.yaml            tunnel, jeton Access, mots de passe, webhook, PAT GHCR (chiffré)
+│       ├── databases/              une base = un fichier (app.yaml, app-prod.yaml)
+│       └── apps/                   un service Helmfile = un fichier (whoami.yaml)
+├── profiles/                       small (4 Go) · medium (8 Go) · large (16 Go et plus)
 ├── ansible/
-│   ├── inventory/hosts.yml         IP et utilisateur du serveur
-│   ├── group_vars/all.yml          canal k3s, pare-feu, dépôts GitHub autorisés (OIDC)
+│   ├── load-env.yml                lit values.yaml et le profil pour les playbooks
+│   ├── group_vars/all.yml          réglages communs, et variables dérivées de l'environnement
 │   ├── site.yml / reset.yml        bootstrap complet / désinstallation de k3s
 │   └── roles/ base · firewall · k3s  (k3s : config, Traefik interne, OIDC)
 ├── helmfile/
-│   ├── helmfile.yaml.gotmpl        couches platform, data, apps
-│   ├── values/alerting.yaml        gabarits Discord et règles d'alerte
-│   ├── environments/
-│   │   ├── test.yaml               zone, tunnel, namespaces, bases, services
-│   │   └── test.secrets.yaml       tunnel, jeton Access, mots de passe, PAT GHCR (chiffré)
-│   ├── values/                     cloudflared, CNPG, monitoring, Loki, Alloy, Rancher
-│   ├── charts/
-│   │   ├── cloudflared/            connecteur Cloudflare Tunnel
-│   │   ├── tenant/                 namespace sécurisé + droits GitHub (OIDC et compte de test)
-│   │   ├── postgres/               cluster CNPG + seed + IP d'administration
-│   │   └── app/                    service HTTP générique (Spring Boot compris)
-│   ├── databases/                  une base = un fichier (app.yaml, app-prod.yaml)
-│   └── apps/
-│       ├── whoami.yaml             déployé par Helmfile
-│       └── api.yaml                déployé par GitHub
-├── ci/                             à copier dans le dépôt de l'application
-│   ├── deploy.example.yml          job GitHub Actions de déploiement
-│   ├── write-kubeconfig.sh         kubeconfig sans secret
-│   └── github-oidc-credential.sh   fournit le jeton OIDC à kubectl/helm
+│   ├── helmfile.yaml.gotmpl        couches platform, data, apps ; charge l'environnement
+│   ├── versions.yaml               versions exactes des charts (Renovate)
+│   ├── values/                     cloudflared, CNPG, monitoring, alertes, Loki, Alloy, Rancher
+│   └── charts/
+│       ├── cloudflared/            connecteur Cloudflare Tunnel
+│       ├── tenant/                 namespace sécurisé + droits GitHub (OIDC et compte de test)
+│       ├── postgres/               cluster CNPG + seed + IP d'administration
+│       └── app/                    service HTTP générique (Spring Boot compris)
+├── ci/                             exemple de job GitHub de déploiement, à copier dans une application
 └── scripts/
+    ├── cfg.py                      lit la configuration (make vars, config-check, envs, urls)
+    ├── init-env.py                 crée un environnement (make init)
     ├── deployer-kubeconfig.sh      jeton de test (compte github-deployer)
     └── via-cloudflare.sh           exécute une commande par le chemin de GitHub
 ```
+
+Les valeurs se superposent, de la plus faible à la plus forte : `helmfile/versions.yaml`, `profiles/<profile>.yaml`, `environments/<env>/values.yaml`, puis `secrets.yaml`. Ansible lit les deux du milieu.

@@ -1,0 +1,101 @@
+---
+title: "Projet k3s-test"
+description: "Fiche du projet k3s-test : valeurs, Cloudflare, GitHub, accès, et migration vers son propre dépôt"
+published: true
+date: 2026-11-02T12:00:00.000Z
+tags: k3s-lab, projet
+editor: markdown
+dateCreated: 2026-11-02T12:00:00.000Z
+---
+
+Projet de validation du modèle : un VPS OVH au Canada, deux applications de démo déployées depuis GitHub en test et en prod.
+
+## Valeurs
+
+| Valeur | k3s-test |
+| --- | --- |
+| Dépôt | `augustinde/k3s-test` (avant la migration : `augustinde/k3s-lab`), cloné dans `~/k3s-test` |
+| Environnement | `test` : `environments/test/` |
+| Cluster (`$CLUSTER`) | `k3s-test` |
+| Machine | OVH VPS-2, 8 Go, 4 vCPU, Ubuntu 26.04, profil `medium` |
+| Serveur (`$IP`) | `148.113.205.126`, utilisateur `ubuntu`, nœud `vps-test` |
+| Zone, suffixe | `augustinde.dev`, `-test` |
+| Port local du tunnel SSH | `6443` |
+
+## Cloudflare
+
+| Élément | Valeur |
+| --- | --- |
+| Tunnel | `k3s-test`, ID `91ae490a-0122-4886-a590-c5d889916214` |
+| DNS | joker `*` proxifié vers le tunnel (premier projet de la zone) |
+| Route privée WARP | `10.43.0.96/28` |
+| Applications Access | `Rancher test` et `Grafana test` (`Augustin + WARP`), `k3s API test` (`Augustin uniquement` et `GitHub deploy`) |
+| Interfaces | `https://grafana-test.augustinde.dev`, `https://rancher-test.augustinde.dev`, `https://whoami-test.augustinde.dev` |
+
+## Namespaces et bases
+
+| | Test | Prod |
+| --- | --- | --- |
+| Namespace | `demo` | `demo-prod` |
+| Base | `app`, IntelliJ sur `10.43.0.100:5432` | `app-prod`, IntelliJ sur `10.43.0.101:5432` |
+| Commandes | `make db-creds DB=app` | `make db-creds DB=app-prod NS=demo-prod` |
+
+## Applications GitHub
+
+| Dépôt | Test (push sur `main`) | Prod (tag `v*`) |
+| --- | --- | --- |
+| [augustinde/api-demo](https://github.com/augustinde/api-demo) | `https://api-demo-test.augustinde.dev/api/demo` | `https://api-demo.augustinde.dev/api/demo` |
+| [augustinde/front-demo](https://github.com/augustinde/front-demo) | `https://front-demo-test.augustinde.dev` | `https://front-demo.augustinde.dev` |
+
+Dans les deux dépôts : variables `K8S_API_HOST` = `k8s-api-test.augustinde.dev` et `K8S_CA_DATA` ; environnements `test` (branche `main`) et `prod` (tag `v*`) avec les secrets `CF_ACCESS_CLIENT_ID` et `CF_ACCESS_CLIENT_SECRET`. L'audience OIDC `k3s-test` est écrite dans `.github/workflows/deploy.yml`, les namespaces dans `ci-cd.yml`.
+
+## Surveillance
+
+- Alertes : salon Discord, webhook `k3s-lab` ; les titres portent `· k3s-test`.
+- Sondes UptimeRobot : `[PROD]` et `[TEST]` pour api-demo (`/actuator/health`) et front-demo, webhook `UptimeRobot` du même salon.
+- Renovate : api-demo, front-demo et le modèle k3s-lab.
+
+## Migration vers le dépôt k3s-test
+
+Jusqu'ici, le projet vivait dans `augustinde/k3s-lab`. Le modèle et le projet se séparent en trois temps ; le cluster n'est ni réinstallé ni interrompu.
+
+### 1 · Passer k3s-lab au format modèle
+
+Fusionne la [PR k3s-lab #5](https://github.com/augustinde/k3s-lab/pull/5), puis :
+
+```bash
+cd ~/k3s-lab
+git checkout .sops.yaml && git pull          # .sops.yaml contient désormais ta clé publique
+[ -f .kube/github-deployer.yaml ] && mv .kube/github-deployer.yaml .kube/k3s-test-github-deployer.yaml
+make config-check
+make tunnel
+make diff
+```
+
+> **Vérifier** · `config-check` répond `Configuration cohérente.` Le diff ne touche que `monitoring` : le label `cluster: k3s-test` de Prometheus et le titre des messages Discord. Applique-le avec `make platform`.
+{.is-success}
+
+### 2 · Créer le dépôt k3s-test
+
+1. Sur GitHub, `augustinde/k3s-lab`, **Use this template**, **Create a new repository** : nom `k3s-test`, **Private**.
+2. Dans WSL :
+
+```bash
+git clone git@github.com:augustinde/k3s-test.git ~/k3s-test
+cp -a ~/k3s-lab/.kube ~/k3s-test/
+cd ~/k3s-test
+make envs
+make tunnel status
+```
+
+3. Dans `~/.zshrc`, remplace la ligne `KUBECONFIG` de la [procédure, étape 5.2](/k3s-lab/procedure/05-piloter-le-cluster-depuis-ton-poste) par la fonction `projet` de la même étape, puis `exec zsh`.
+
+> **Vérifier** · `make envs` affiche `test   k3s-test profil medium  ubuntu@148.113.205.126`, et `make status` montre le nœud `Ready` et tous les pods en `Running`. Rien n'a changé côté GitHub : même API, même audience, même certificat.
+{.is-success}
+
+### 3 · Nettoyer le modèle
+
+Une fois `k3s-test` utilisé au quotidien, une PR sur k3s-lab retire `environments/test` ; puis, dans k3s-lab, Settings, General, coche **Template repository**. `~/k3s-lab` ne sert plus qu'à faire évoluer le modèle ; les projets récupèrent ses évolutions comme décrit dans [Créer un projet](/k3s-lab/nouveau-projet).
+
+> **Vérifier** · La page du dépôt k3s-lab affiche le bouton vert **Use this template**, et `environments/` n'y contient plus que `example`.
+{.is-success}

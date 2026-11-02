@@ -8,7 +8,7 @@ editor: markdown
 dateCreated: 2026-11-02T12:00:00.000Z
 ---
 
-WARP relie ton Windows à la plage privée du cluster (bases sur `10.43.0.96/28`) et prouve à Cloudflare Access que ton navigateur passe par lui. Les réglages se font d'abord dans Zero Trust (5.1 à 5.4), puis sur ton PC (5.5 et 5.6).
+WARP relie ton Windows aux plages privées des clusters (les bases, sur la route `<route>` de chaque projet) et prouve à Cloudflare Access que ton navigateur passe par lui. Les réglages se font une fois : d'abord dans Zero Trust (5.1 à 5.4), puis sur ton PC (5.5 et 5.6). Pour un nouveau projet, seules les exclusions de 5.3 (liste précise) et les applications de 5.4 sont à reprendre.
 
 ## 5.1 · Autoriser ton PC à s'inscrire
 
@@ -16,14 +16,14 @@ WARP relie ton Windows à la plage privée du cluster (bases sur `10.43.0.96/28`
 
 ## 5.2 · Activer le proxy Gateway
 
-*Mot-clé : « Proxy » ou « Traffic settings ».* Zero Trust, **Traffic controls**, **Traffic settings** : active le proxy (« Allow Secure Web Gateway to proxy traffic »), en **TCP** et **UDP**. Sans lui, le trafic vers `10.43.0.100` n'est pas acheminé, et la règle « Require Gateway » ne fonctionne pas.
+*Mot-clé : « Proxy » ou « Traffic settings ».* Zero Trust, **Traffic controls**, **Traffic settings** : active le proxy (« Allow Secure Web Gateway to proxy traffic »), en **TCP** et **UDP**. Sans lui, le trafic vers les bases n'est pas acheminé, et la règle « Require Gateway » ne fonctionne pas.
 
 ## 5.3 · Laisser passer la plage du cluster
 
-*Mot-clé : « Split Tunnels ».* Team & Resources, Devices, **Device profiles**, profil **Default**, **Edit**. Section **Split Tunnels** (mode Exclude IPs and domains), **Manage**. Par défaut, Cloudflare exclut tout `10.0.0.0/8`, ce qui empêcherait d'atteindre `10.43.0.100`.
+*Mot-clé : « Split Tunnels ».* Team & Resources, Devices, **Device profiles**, profil **Default**, **Edit**. Section **Split Tunnels** (mode Exclude IPs and domains), **Manage**. Par défaut, Cloudflare exclut tout `10.0.0.0/8`, ce qui empêcherait d'atteindre les routes des projets, en `10.43.0.x`.
 
 - **Simple** : supprime la ligne `10.0.0.0/8`. Ne touche pas aux autres : `192.168.0.0/16` (ta Livebox) et `172.16.0.0/12` (WSL) restent exclus.
-- **Précise**, à préférer si le VPN d'un client utilise des adresses en `10.x` : supprime `10.0.0.0/8`, puis ajoute ces 20 plages, qui couvrent tout `10.x` sauf la plage du cluster.
+- **Précise**, à préférer si le VPN d'un client utilise des adresses en `10.x` : supprime `10.0.0.0/8`, puis ajoute ces 20 plages, qui couvrent tout `10.x` sauf `10.43.0.96/28`, la route du premier projet.
 
 ```text
 10.0.0.0/11  10.32.0.0/13  10.40.0.0/15  10.42.0.0/16  10.43.0.0/26
@@ -31,6 +31,8 @@ WARP relie ton Windows à la plage privée du cluster (bases sur `10.43.0.96/28`
 10.43.4.0/22  10.43.8.0/21  10.43.16.0/20  10.43.32.0/19  10.43.64.0/18
 10.43.128.0/17  10.44.0.0/14  10.48.0.0/12  10.64.0.0/10  10.128.0.0/9
 ```
+
+Deuxième projet en `10.43.0.112/28` : retire cette ligne de la liste. Au-delà de deux projets, passe en mode simple.
 
 Les changements de profil mettent jusqu'à 10 minutes à arriver sur le client. Dans le même profil, vérifie que **Service mode** est sur *Traffic and DNS mode*.
 
@@ -47,7 +49,7 @@ Les changements de profil mettent jusqu'à 10 minutes à arriver sur le client. 
 | Include | Emails = ton adresse |
 | Require | Device posture (parfois nommé Gateway) = **Gateway** |
 
-3. **Application** : Access controls, **Applications**. Dans **Rancher test**, remplace `Augustin uniquement` par `Augustin + WARP` et enregistre ; fais de même pour **Grafana test**. **k3s API test** garde `Augustin uniquement` (GitHub n'aura pas WARP).
+3. **Applications** : Access controls, **Applications**. Dans **Rancher <cluster>**, remplace `Augustin uniquement` par `Augustin + WARP` et enregistre ; fais de même pour **Grafana <cluster>**. **k3s API <cluster>** garde `Augustin uniquement` (GitHub n'aura pas WARP). Les projets suivants reçoivent directement `Augustin + WARP` (4.7).
 
 Si le sélecteur Device posture ou Gateway n'apparaît pas dans le bloc Require, vérifie le proxy de l'étape 5.2.
 
@@ -67,7 +69,7 @@ Par la suite, le client se trouve dans la zone de notification (nuage orange) et
 
 1. **Client** : « Connecté » avec ton organisation, et ton PC apparaît dans Team & Resources, **Devices**.
 2. **Gateway** : `https://help.teams.cloudflare.com` indique que tu passes par WARP et Gateway, avec ton nom d'équipe.
-3. **Restriction**, en navigation privée sur `https://rancher-test.tondomaine.fr` :
+3. **Restriction**, en navigation privée sur `https://rancher<suffixe>.<zone>` (ou `grafana<suffixe>`) :
 
 | WARP | Résultat attendu |
 | --- | --- |

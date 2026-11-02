@@ -8,13 +8,13 @@ editor: markdown
 dateCreated: 2026-11-02T12:00:00.000Z
 ---
 
-Alertmanager envoie les alertes de Prometheus dans un seul salon Discord. Le titre indique l'origine, d'après le namespace concerné :
+Alertmanager envoie les alertes de Prometheus dans un salon Discord. Le titre indique l'origine, d'après le namespace concerné, puis le cluster : plusieurs projets peuvent partager un salon.
 
 | Préfixe | Namespaces | Exemple |
 | --- | --- | --- |
-| 🔴 PROD | se terminant par `-prod` | 🔴 PROD · KubePodCrashLooping |
-| 🟡 TEST | les autres namespaces applicatifs (`demo`) | 🟡 TEST · KubeDeploymentReplicasMismatch |
-| ⚙️ INFRA | nœud et plateforme (`monitoring`, `cloudflared`, `kube-system`…) | ⚙️ INFRA · MemoireNoeudSaturee |
+| 🔴 PROD | se terminant par `-prod` | 🔴 PROD · k3s-test · KubePodCrashLooping |
+| 🟡 TEST | les autres namespaces applicatifs | 🟡 TEST · k3s-test · KubeDeploymentReplicasMismatch |
+| ⚙️ INFRA | nœud et plateforme (`monitoring`, `cloudflared`, `kube-system`…) | ⚙️ INFRA · k3s-test · MemoireNoeudSaturee |
 
 Seules les alertes `warning` et `critical` partent, regroupées par nom et namespace, avec un message « ✅ Résolu » à la fin. Les titres et le cadre sont en français ; le texte des règles fournies par kube-prometheus-stack reste en anglais. Trois règles sont ajoutées, en français : tunnel sans connecteur, PostgreSQL arrêté, mémoire du nœud au-delà de 90 %. Gabarits et règles : `helmfile/values/alerting.yaml`.
 
@@ -37,7 +37,7 @@ Dans Discord, sur le salon choisi : **Modifier le salon**, **Intégrations**, **
 
 ```bash
 read -rs HOOK      # colle l'URL du webhook, puis Entrée (rien ne s'affiche)
-sops set helmfile/environments/test.secrets.yaml '["alerting"]' "{\"discordWebhookUrl\": \"$HOOK\"}"
+sops set $ENV_DIR/secrets.yaml '["alerting"]' "{\"discordWebhookUrl\": \"$HOOK\"}"
 unset HOOK
 ```
 
@@ -46,7 +46,7 @@ unset HOOK
 > **Vérifier**
 >
 > ```bash
-> sops -d --extract '["alerting"]["discordWebhookUrl"]' helmfile/environments/test.secrets.yaml | cut -c1-34; echo
+> sops -d --extract '["alerting"]["discordWebhookUrl"]' $ENV_DIR/secrets.yaml | cut -c1-34; echo
 > git commit -am "Webhook Discord des alertes" && git push
 > ```
 >
@@ -76,7 +76,7 @@ On injecte une fausse alerte directement dans Alertmanager, pour chaque préfixe
 ```bash
 kubectl -n monitoring port-forward svc/monitoring-kube-prometheus-alertmanager 9093 > /dev/null &
 sleep 3
-for ns in demo-prod demo monitoring; do
+for ns in $NS-prod $NS monitoring; do
   curl -s -XPOST localhost:9093/api/v2/alerts -H 'Content-Type: application/json' -d "[{
     \"labels\": {\"alertname\": \"AlerteDeTest\", \"namespace\": \"$ns\", \"severity\": \"warning\"},
     \"annotations\": {\"summary\": \"Alerte envoyée à la main depuis WSL\"}}]"
@@ -84,7 +84,7 @@ done
 kill %1
 ```
 
-> **Vérifier** · En moins d'une minute, le salon reçoit trois messages, 🔴 PROD, 🟡 TEST et ⚙️ INFRA · AlerteDeTest. Environ 5 minutes plus tard arrivent les trois messages « ✅ Résolu ».
+> **Vérifier** · En moins d'une minute, le salon reçoit trois messages, 🔴 PROD, 🟡 TEST et ⚙️ INFRA · AlerteDeTest. Une alerte injectée à la main ne porte pas le nom du cluster : seules celles de Prometheus l'ont. Environ 5 minutes plus tard arrivent les trois messages « ✅ Résolu ».
 >
 > Rien n'arrive : `kubectl -n monitoring logs alertmanager-monitoring-kube-prometheus-alertmanager-0 -c alertmanager | grep -i discord` montre l'erreur. La cause la plus courante est une URL de webhook incomplète dans les secrets.
 {.is-success}

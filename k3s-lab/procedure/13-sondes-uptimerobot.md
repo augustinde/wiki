@@ -19,9 +19,9 @@ Les alertes de l'étape 12 viennent de l'intérieur du cluster : si le VPS ou le
 > **Vérifier** · L'intégration Discord apparaît comme active. Si l'interface propose un envoi de test, le message arrive dans le salon.
 {.is-success}
 
-## 13.2 · Créer les quatre sondes
+## 13.2 · Créer les sondes
 
-**New monitor**, type **HTTP(s)**, intervalle 5 minutes, notification vers l'intégration Discord. Le nom commence par l'environnement, comme les alertes :
+**New monitor**, type **HTTP(s)**, intervalle 5 minutes, notification vers l'intégration Discord. Le nom commence par l'environnement, comme les alertes, suivi de l'application. Une sonde par application et par environnement ; pour k3s-test :
 
 | Nom | URL |
 | --- | --- |
@@ -30,21 +30,21 @@ Les alertes de l'étape 12 viennent de l'intérieur du cluster : si le VPS ou le
 | `[TEST] api-demo` | `https://api-demo-test.augustinde.dev/actuator/health` |
 | `[TEST] front-demo` | `https://front-demo-test.augustinde.dev` |
 
-Pour l'API, `/actuator/health` répond `503` quand la base ne répond plus : la sonde vérifie donc aussi PostgreSQL.
+Pour une API Spring Boot, `/actuator/health` répond `503` quand la base ne répond plus : la sonde vérifie donc aussi PostgreSQL. Avec plusieurs projets dans le même salon, ajoute le cluster au nom : `[PROD] <cluster> · <app>`.
 
-> **Vérifier** · Après 5 minutes, les quatre sondes sont **Up** dans le tableau de bord. Une sonde en `403` vient en général d'une protection anti-bots de Cloudflare (Security, Bots) : désactive le **Bot Fight Mode** de la zone.
+> **Vérifier** · Après 5 minutes, toutes les sondes sont **Up** dans le tableau de bord. Une sonde en `403` vient en général d'une protection anti-bots de Cloudflare (Security, Bots) : désactive le **Bot Fight Mode** de la zone.
 {.is-success}
 
 ## 13.3 · Tester une panne
 
 ```bash
-kubectl -n demo scale deploy front-demo --replicas=0
+kubectl -n $NS scale deploy <app> --replicas=0
 ```
 
-> **Vérifier** · En 5 à 10 minutes, le salon reçoit un message `[TEST] front-demo` en panne. Remets le service :
+> **Vérifier** · En 5 à 10 minutes, le salon reçoit un message `[TEST] <app>` en panne. Remets le service :
 >
 > ```bash
-> kubectl -n demo scale deploy front-demo --replicas=1
+> kubectl -n $NS scale deploy <app> --replicas=1
 > ```
 >
 > Un message de retour à la normale suit dans les 5 minutes. Le prochain push sur `main` remettrait de toute façon le nombre de réplicas déclaré dans le dépôt.
