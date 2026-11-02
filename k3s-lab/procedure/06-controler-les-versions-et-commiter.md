@@ -8,24 +8,24 @@ editor: markdown
 dateCreated: 2026-11-02T12:00:00.000Z
 ---
 
-Les versions exactes des charts sont dans `helmfile/environments/test.yaml`, section `versions:`. Chaque rejeu installe exactement celles-là ; Renovate propose les mises à jour (étape 14).
+Les versions exactes des charts sont dans `helmfile/versions.yaml`, communes à tous les projets. Chaque rejeu installe exactement celles-là ; Renovate propose les mises à jour dans le modèle (étape 14).
 
 ## 6.1 · Contrôler les versions
 
 ```bash
-grep -A14 '^versions:' helmfile/environments/test.yaml | grep -v renovate
+grep -v '^\s*#' helmfile/versions.yaml
 ```
 
-> **Vérifier** · Cinq versions exactes (`cnpg`, `kubePrometheusStack`, `rancher`, `loki`, `alloy`), sans `>=`. Un dépôt antérieur à la PR k3s-lab #2 a encore des contraintes `>=` et un `helmfile.lock` : dans ce cas, `make lock` fige les versions.
+> **Vérifier** · Cinq versions exactes (`cnpg`, `kubePrometheusStack`, `rancher`, `loki`, `alloy`), sans `>=`.
 {.is-success}
 
 ## 6.2 · Commiter
 
 ```bash
-git add ansible/inventory/hosts.yml Makefile
-git commit -m "IP du VPS"
+git add $ENV_DIR
+git commit -m "IP du serveur"
 git push
 ```
 
-> **Vérifier** · `git log -1 --stat` montre les deux fichiers, et `git status` ne les liste plus.
+> **Vérifier** · `git log -1 --stat` montre `inventory.yml`, et `git status` ne liste plus rien dans `$ENV_DIR`.
 {.is-success}

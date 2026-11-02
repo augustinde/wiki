@@ -14,8 +14,8 @@ Documentation personnelle, modifiable dans le navigateur et synchronisée avec l
 
 | Section | Contenu |
 | --- | --- |
-| [k3s-lab](/k3s-lab) | Environnement k3s rejouable sur VPS OVH : mise en route, procédure, exploitation, référence |
-| [Outils](/outils/wiki) | Ce wiki : [installation](/outils/installation), synchronisation git, ajout de pages |
+| [k3s-lab](/k3s-lab) | Modèle d'environnement k3s rejouable : mise en route, création de projet, procédure, exploitation, référence, fiches projets |
+| [Outils](/outils/wiki) | Ce wiki : [installation](/outils/installation), synchronisation git, ajout de pages ; [terminal WSL avec zsh](/outils/terminal-wsl) |
 
 ## Ajouter une section
 

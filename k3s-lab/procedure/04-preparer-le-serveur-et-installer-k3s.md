@@ -14,17 +14,17 @@ dateCreated: 2026-11-02T12:00:00.000Z
 make bootstrap
 ```
 
-Ansible applique trois rôles : `base` (mises à jour, paquets, SSH durci, fail2ban), `firewall` (ufw) et `k3s` (installation, Traefik interne, OIDC). Compte 3 à 6 minutes : la latence vers le Canada ralentit chaque tâche.
+Ansible lit `environments/<env>/values.yaml` et le profil, puis applique trois rôles : `base` (mises à jour, paquets, SSH durci, fail2ban), `firewall` (ufw) et `k3s` (installation, Traefik interne, OIDC). Compte 3 à 6 minutes, davantage si le serveur est loin (la latence ralentit chaque tâche).
 
-> **Vérifier** · La dernière ligne, `PLAY RECAP`, affiche `vps-test : ok=… changed=… unreachable=0 failed=0`. Si `failed` vaut 1 ou plus, lis la tâche en rouge juste au-dessus, corrige, puis relance `make bootstrap` : il reprend sans casser ce qui est fait.
+> **Vérifier** · La dernière ligne, `PLAY RECAP`, affiche `<nœud> : ok=… changed=… unreachable=0 failed=0`. Si `failed` vaut 1 ou plus, lis la tâche en rouge juste au-dessus, corrige, puis relance `make bootstrap` : il reprend sans casser ce qui est fait.
 {.is-success}
 
 ## 4.2 · Contrôler le durcissement SSH
 
 ```bash
-ssh -o PubkeyAuthentication=no ubuntu@$IP
+ssh -o PubkeyAuthentication=no $SSH_USER@$IP
 ssh root@$IP
-ssh ubuntu@$IP 'sudo fail2ban-client status sshd | head -3'
+ssh $SSH_USER@$IP 'sudo fail2ban-client status sshd | head -3'
 ```
 
 > **Vérifier**
@@ -41,7 +41,7 @@ ssh ubuntu@$IP 'sudo fail2ban-client status sshd | head -3'
 ## 4.3 · Contrôler le pare-feu
 
 ```bash
-ssh ubuntu@$IP 'sudo ufw status verbose'
+ssh $SSH_USER@$IP 'sudo ufw status verbose'
 for p in 22 80 443 6443; do nc -zv -w 3 $IP $p; done
 ```
 
@@ -57,18 +57,18 @@ for p in 22 80 443 6443; do nc -zv -w 3 $IP $p; done
 ## 4.4 · Contrôler k3s
 
 ```bash
-ssh ubuntu@$IP 'sudo k3s kubectl get nodes'
-ssh ubuntu@$IP 'sudo grep -c authentication-config /etc/rancher/k3s/config.yaml'
-ls -l .kube/k3s-test.yaml
+ssh $SSH_USER@$IP 'sudo k3s kubectl get nodes'
+ssh $SSH_USER@$IP 'sudo grep -c authentication-config /etc/rancher/k3s/config.yaml'
+ls -l .kube/$CLUSTER.yaml
 ```
 
 > **Vérifier**
 >
 > | Contrôle | Résultat attendu |
 > | --- | --- |
-> | Nœud | `vps-test   Ready   control-plane`, version `v1.34.x+k3s1` |
-> | OIDC GitHub | `1` : l'API accepte les jetons des deux dépôts |
+> | Nœud | `<nœud>   Ready   control-plane`, version `v1.34.x+k3s1` |
+> | OIDC GitHub | `1` : l'API accepte les jetons des dépôts déclarés |
 > | kubeconfig | fichier présent, droits `-rw-------` |
 >
-> L'OIDC affiche `0` : la liste `github_oidc_repositories` est vide. Reprends 1.3, puis relance `make bootstrap`.
+> L'OIDC affiche `0` : aucun dépôt n'est déclaré sous `tenants.<ns>.githubOidc`. Reprends 1.3, puis relance `make bootstrap`.
 {.is-success}

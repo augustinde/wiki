@@ -8,7 +8,7 @@ editor: markdown
 dateCreated: 2026-11-02T12:00:00.000Z
 ---
 
-Chaque base est un cluster CloudNativePG décrit par un fichier `helmfile/databases/<nom>.yaml`. Elle se recrée vide avec son seed en une commande.
+Chaque base est un cluster CloudNativePG décrit par un fichier `environments/<env>/databases/<nom>.yaml`. Sa taille (CPU, mémoire, volume, `shared_buffers`, `max_connections`) vient du profil, surchargeable dans ce fichier. Elle se recrée vide avec son seed en une commande.
 
 - **Déployer** : `make data` crée les bases déclarées sous `databases:` et attend qu'elles soient prêtes.
 - **Recréer** : `make db-reset DB=app` supprime le cluster et ses volumes, le recrée, rejoue `seed.sql` puis attend l'état Ready. Le seed est joué avec le rôle propriétaire : les tables appartiennent à l'application.
@@ -18,15 +18,15 @@ Chaque base est un cluster CloudNativePG décrit par un fichier `helmfile/databa
 
 ## Depuis IntelliJ (ou DBeaver)
 
-Chaque base déclare une IP fixe dans `adminAccess.clusterIP` : `10.43.0.100` pour `app`. Le chart crée un service `app-admin` sur cette IP, toujours branché sur l'instance primaire. L'adresse ne change pas d'un rejeu à l'autre, donc IntelliJ garde sa connexion après un `make rebuild`.
+Chaque base déclare une IP fixe dans `adminAccess.clusterIP`, prise dans la route privée du projet (`cloudflare.privateRoute`) : `10.43.0.100` pour `app` dans k3s-test. Le chart crée un service `app-admin` sur cette IP, toujours branché sur l'instance primaire. L'adresse ne change pas d'un rejeu à l'autre, donc IntelliJ garde sa connexion après un `make rebuild`.
 
 1. Connecte WARP.
 2. `make db-creds DB=app` affiche l'URL JDBC, l'utilisateur et le mot de passe.
 3. Dans IntelliJ, Database, +, Data Source, PostgreSQL :
-   - Host `10.43.0.100`, Port `5432`, Database `app`, User `app`, mot de passe affiché par `db-creds`.
+   - Host = IP de la base, Port `5432`, Database `app`, User `app`, mot de passe affiché par `db-creds`.
    - SSL : laisse le mode par défaut (`prefer`). Le certificat de CloudNativePG est auto-signé, n'active pas `verify-full`.
 4. Après un `make rebuild` ou un `make db-reset`, le mot de passe est régénéré : relance `make db-creds`.
 
-Pour une nouvelle base, prends l'IP libre suivante entre `10.43.0.96` et `10.43.0.111`.
+Pour une nouvelle base, prends l'IP libre suivante de la route du projet ; `make config-check` signale une IP hors de la route ou déjà prise.
 
 Sans WARP, par exemple depuis une machine non enrôlée, `make db-forward DB=app` reste disponible. Il passe par le tunnel SSH et expose la base sur `localhost:5432` tant que la commande tourne.

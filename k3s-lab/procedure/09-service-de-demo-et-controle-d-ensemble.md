@@ -19,11 +19,11 @@ make apps
 > **Vérifier**
 >
 > ```bash
-> kubectl -n demo get deploy,ingress
-> curl -s https://whoami-test.tondomaine.fr | grep -iE 'cf-connecting-ip|x-forwarded-proto'
+> kubectl -n $NS get deploy,ingress
+> curl -s https://whoami$SUFFIX.$ZONE | grep -iE 'cf-connecting-ip|x-forwarded-proto'
 > ```
 >
-> Le déploiement `whoami` est en `1/1`, et l'ingress porte l'hôte `whoami-test.tondomaine.fr`. `curl` affiche `Cf-Connecting-Ip` avec ton IP publique Orange, et `X-Forwarded-Proto: https`.
+> Le déploiement `whoami` est en `1/1`, et l'ingress porte l'hôte `whoami<suffixe>.<zone>`. `curl` affiche `Cf-Connecting-Ip` avec ton IP publique, et `X-Forwarded-Proto: https`.
 {.is-success}
 
 ## 9.2 · Contrôle d'ensemble
@@ -37,8 +37,8 @@ for p in 22 80 443 6443; do nc -zv -w 3 $IP $p; done
 >
 > - Nœud `Ready`, aucun pod en `CrashLoopBackOff`, `Error` ou `Pending`. Quelques redémarrages de `fleet-controller` et `gitjob` au démarrage de Rancher sont normaux.
 > - Base `app` en `Cluster in healthy state`.
-> - Les dernières lignes de cloudflared peuvent être des `precheck … status=pass` : c'est bon signe. Pour l'état du tunnel, `cloudflared tunnel info k3s-test` liste 2 connecteurs.
-> - `kubectl top node` : environ 5 Go de mémoire utilisée, soit 70 à 75 %.
+> - Les dernières lignes de cloudflared peuvent être des `precheck … status=pass` : c'est bon signe. Pour l'état du tunnel, `cloudflared tunnel info $CLUSTER` liste ses connecteurs.
+> - `kubectl top node` : mémoire utilisée sous 80 %. Repère k3s-test (`medium`, 8 Go) : environ 5 Go, soit 70 à 75 %. Au-delà, voir le budget mémoire dans [Sécurité et ressources](/k3s-lab/reference/securite).
 > - Depuis l'extérieur, seul le port 22 répond.
 >
 > Coche ensuite la liste « Après le déploiement du cluster » dans la [Mise en route](/k3s-lab/mise-en-route/06-controle-final).

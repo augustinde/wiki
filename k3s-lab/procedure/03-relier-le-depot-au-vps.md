@@ -10,24 +10,24 @@ dateCreated: 2026-11-02T12:00:00.000Z
 
 ## 3.1 · Renseigner l'IP
 
-L'IP sert à deux endroits : l'inventaire Ansible et la variable `SSH_TARGET` du `Makefile`.
+L'IP n'est écrite qu'à un endroit, l'inventaire du projet ; le `Makefile` et les variables la lisent là.
 
 ```bash
-IP=203.0.113.10        # ← remplace par l'IPv4 du VPS
-sed -i "s/ansible_host: [0-9.]*/ansible_host: $IP/" ansible/inventory/hosts.yml
-sed -i "s/^SSH_TARGET ?= .*/SSH_TARGET ?= ubuntu@$IP/" Makefile
+NEW_IP=203.0.113.10        # ← remplace par l'IPv4 du serveur
+sed -i "s/ansible_host: .*/ansible_host: $NEW_IP/" $ENV_DIR/inventory.yml
+eval "$(make -s vars)"
 ```
 
-La variable `IP` resservira dans les contrôles suivants. Elle disparaît quand tu ouvres un nouveau terminal ; `nc: missing port number` en est le symptôme. Pour la redéfinir depuis le `Makefile` : `IP=$(sed -n 's/^SSH_TARGET ?= ubuntu@//p' Makefile)`.
+La variable `IP` resservira dans les contrôles suivants. Elle disparaît quand tu ouvres un nouveau terminal ; `nc: missing port number` en est le symptôme : relance `eval "$(make -s vars)"`.
 
 > **Vérifier**
 >
 > ```bash
-> grep -n 'ansible_host' ansible/inventory/hosts.yml
-> grep -n '^SSH_TARGET' Makefile
+> grep -n 'ansible_' $ENV_DIR/inventory.yml
+> make envs
 > ```
 >
-> Les deux lignes portent la même IP, avec l'utilisateur `ubuntu` dans le `Makefile`.
+> L'inventaire porte la nouvelle IP et l'utilisateur `ubuntu`, et `make envs` affiche `ubuntu@<ip>` pour l'environnement.
 {.is-success}
 
 ## 3.2 · Accepter l'empreinte du serveur
@@ -43,7 +43,7 @@ make forget-host
 **Si la commande échoue avec `You are required to change your password immediately` puis `no TTY available`** : les images Ubuntu d'OVH imposent de changer le mot de passe temporaire du compte `ubuntu` à la première connexion, même avec une clé. Une fois, en interactif :
 
 ```bash
-ssh ubuntu@$IP
+ssh $SSH_USER@$IP
 ```
 
 Saisis le mot de passe temporaire (email OVH de fin d'installation, ou page du VPS dans l'espace client), puis deux fois un nouveau mot de passe. La connexion se ferme : relance `make forget-host`. Garde ce mot de passe dans ton gestionnaire. SSH le refusera après le bootstrap ; il ne sert plus qu'à la console KVM d'OVH, en secours.
@@ -51,18 +51,18 @@ Saisis le mot de passe temporaire (email OVH de fin d'installation, ou page du V
 > **Vérifier**
 >
 > ```bash
-> ssh ubuntu@$IP 'lsb_release -ds; free -h | grep Mem'
-> cd ansible && ansible all -m ping && ansible all -b -m command -a whoami; cd ..
+> ssh $SSH_USER@$IP 'lsb_release -ds; free -h | grep Mem'
+> cd ansible && ansible all -i ../$ENV_DIR/inventory.yml -m ping && ansible all -i ../$ENV_DIR/inventory.yml -b -m command -a whoami; cd ..
 > ```
 >
 > | Contrôle | Résultat attendu |
 > | --- | --- |
 > | Connexion | aucun mot de passe demandé |
 > | Système | `Ubuntu 26.04 LTS (ou 24.04.x)` |
-> | Mémoire | `Mem:` environ `7,7Gi` au total |
-> | Ansible | `vps-test \| SUCCESS` et `"ping": "pong"` |
+> | Mémoire | `Mem:` cohérente avec le profil : environ `3,8Gi` en `small`, `7,7Gi` en `medium` |
+> | Ansible | `<nœud> \| SUCCESS` et `"ping": "pong"` |
 >
-> La dernière commande doit répondre `vps-test | CHANGED` avec `root` : Ansible sait passer administrateur. Sur Ubuntu 26.04, `sudo` est remplacé par sudo-rs, que le module `become` d'Ansible gère mal quand un mot de passe est demandé. Le compte `ubuntu` d'OVH n'en demande pas, donc ça passe. Si la commande reste bloquée jusqu'à `Timed out waiting for become success`, ajoute `ansible_become_exe: sudo.ws` (le sudo classique, toujours installé) sous `ansible_user` dans `ansible/inventory/hosts.yml`, puis relance.
+> La dernière commande doit répondre `<nœud> | CHANGED` avec `root` : Ansible sait passer administrateur. Sur Ubuntu 26.04, `sudo` est remplacé par sudo-rs, que le module `become` d'Ansible gère mal quand un mot de passe est demandé. Le compte `ubuntu` d'OVH n'en demande pas, donc ça passe. Si la commande reste bloquée jusqu'à `Timed out waiting for become success`, ajoute `ansible_become_exe: sudo.ws` (le sudo classique, toujours installé) sous `ansible_user` dans `$ENV_DIR/inventory.yml`, puis relance.
 >
 > `Permission denied (publickey)` : la clé collée chez OVH n'est pas celle de `~/.ssh`. Recommence l'étape 2 avec la bonne clé.
 {.is-success}
