@@ -41,7 +41,7 @@ resources:
 3. Dans WSL :
 
 ```bash
-git clone git@github.com:augustinde/<projet>.git ~/<projet>
+git clone https://github.com/augustinde/<projet>.git ~/<projet>
 cd ~/<projet>
 make help | tail -2
 ```
@@ -91,6 +91,7 @@ Dans `environments/<env>/values.yaml`, chaque bloc est commenté :
 - **`githubOidc`** sous chaque namespace : les dépôts GitHub autorisés à y déployer, avec l'environnement GitHub (`test`, `prod`). Ansible en déduit la liste de l'API k3s ; rien à écrire ailleurs.
 - **`databases`** : une base par entrée, plus un fichier `databases/<nom>.yaml`. Chaque base d'administration prend une IP de la route privée (la première base a la 5ᵉ adresse, par exemple `10.43.0.100` pour `10.43.0.96/28`).
 - **`apps`** : services déployés par Helmfile, plus un fichier `apps/<nom>.yaml`.
+- **`publicBuckets`** : buckets S3 OVH de fichiers publics, servis sur `<nom><suffixe>.<zone>` avec le cache Cloudflare ([procédure, étape 15](/k3s-lab/procedure/15-stockage-s3)).
 
 ```bash
 make config-check
@@ -140,7 +141,7 @@ Le code commun ne contient aucune valeur de projet : il se remplace en bloc, san
 
 ```bash
 cd ~/<projet>
-git remote add modele git@github.com:augustinde/k3s-lab.git     # une fois
+git remote add modele https://github.com/augustinde/k3s-lab.git     # une fois
 git fetch modele
 git checkout modele/main -- Makefile ansible helmfile profiles scripts ci renovate.json
 git diff --cached --stat

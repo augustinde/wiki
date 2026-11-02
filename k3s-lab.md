@@ -28,6 +28,7 @@ Le dépôt `augustinde/k3s-lab` est un **modèle** GitHub. Chaque projet en est 
 | Nouveau projet (nouveau serveur, nouveau client) | [Créer un projet](/k3s-lab/nouveau-projet) |
 | Installer ou réinstaller le serveur d'un projet | [Procédure](/k3s-lab/procedure), étapes 0 à 9 |
 | Brancher GitHub, la prod, les alertes | [Procédure](/k3s-lab/procedure), étapes 10 à 14 |
+| Stocker des images publiques (S3 OVH) | [Procédure, étape 15](/k3s-lab/procedure/15-stockage-s3) |
 | Travailler au quotidien | [Gestion quotidienne](/k3s-lab/exploitation/gestion-quotidienne) |
 | Comprendre un choix, dépanner | [Référence](/k3s-lab/reference/architecture) |
 

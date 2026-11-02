@@ -24,6 +24,7 @@ Toi, tu administres par SSH ; GitHub et les visiteurs passent par Cloudflare. Ch
 | Contrôle d'accès | Cloudflare Access | Email pour Rancher et Grafana, jeton de service pour l'API |
 | Déploiement | Helmfile, versions exactes suivies par Renovate, profils de taille | Couches sélectionnables, versions figées, `diff` avant `apply`, même code pour toutes les machines |
 | PostgreSQL | CloudNativePG | Bases déclaratives, seed rejouable, métriques Prometheus |
+| Fichiers publics | OVH Object Storage (S3) + proxy nginx + cache Cloudflare | Hors du serveur, trafic sortant gratuit, servi depuis le domaine du projet et mis en cache |
 | Observabilité | kube-prometheus-stack (Grafana), Loki + Alloy, Rancher | Métriques, logs et tableaux de bord dans Grafana, interface de diagnostic |
 | Accès CI | OIDC GitHub Actions + RBAC par namespace | Aucun jeton Kubernetes stocké chez GitHub, droits limités à un namespace |
 | Secrets | SOPS + age | Chiffrés dans Git, déchiffrés à la volée par helm-secrets |
