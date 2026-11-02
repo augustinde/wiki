@@ -53,7 +53,7 @@ Dans les deux dépôts : variables `K8S_API_HOST` = `k8s-api-test.augustinde.dev
 
 | | Test | Prod |
 | --- | --- | --- |
-| Bucket OVH (région `bhs`) | `k3s-test-demo` | `k3s-test-demo-prod` |
+| Bucket OVH | `k3s-test-demo` | `k3s-test-demo-prod` |
 | Utilisateur S3 | `k3s-test-demo` | `k3s-test-demo-prod` |
 | Adresse publique | `https://files-test.augustinde.dev` | `https://files.augustinde.dev` |
 | Proxy | `files`, namespace `demo` | `files-prod`, namespace `demo-prod` |

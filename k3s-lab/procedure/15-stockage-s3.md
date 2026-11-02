@@ -45,7 +45,7 @@ make config-check
 | --- | --- |
 | Offre | API S3, classe **Standard** |
 | Déploiement | 1-AZ |
-| Région | **Beauharnois (BHS)**, le datacenter du VPS ; une autre région si le serveur est ailleurs (`gra`, `sbg`, `rbx`…) |
+| Région | au choix : la plus proche du serveur ou des visiteurs ; note son code en minuscules, il sert ensuite partout (`<region>`) |
 | Nom | `<cluster>-<ns>` (`echo $CLUSTER-$NS`) ; s'il est déjà pris, ajoute un suffixe |
 | Gestion des versions, Object Lock | désactivés |
 | Utilisateur | **Créer un nouvel utilisateur**, description `<cluster>-<ns>` |
@@ -55,7 +55,7 @@ Le bucket reste **privé** : seuls les objets envoyés en lecture publique seron
 
 Note la clé d'accès et la clé secrète de l'utilisateur dans ton gestionnaire de mots de passe : onglet **Utilisateurs Object Storage**, **Voir les credentials**.
 
-> **Vérifier** · L'onglet **Mes conteneurs** liste le bucket en région BHS, et l'onglet **Utilisateurs Object Storage** l'utilisateur `<cluster>-<ns>`.
+> **Vérifier** · L'onglet **Mes conteneurs** liste le bucket dans la région choisie, et l'onglet **Utilisateurs Object Storage** l'utilisateur `<cluster>-<ns>`.
 {.is-success}
 
 ## 15.3 · Limiter l'utilisateur à son bucket
@@ -105,12 +105,13 @@ pipx install awscli
 Puis, pour le bucket :
 
 ```bash
+S3_REGION=<region>                    # code de la région du bucket, en minuscules
 mkdir -p ~/.aws
 cat >> ~/.aws/config <<EOF
 
 [profile ovh-$BUCKET]
-region = bhs
-endpoint_url = https://s3.bhs.io.cloud.ovh.net
+region = $S3_REGION
+endpoint_url = https://s3.$S3_REGION.io.cloud.ovh.net
 request_checksum_calculation = when_required
 response_checksum_validation = when_required
 EOF
@@ -124,8 +125,8 @@ base64 -d > /tmp/pixel.png <<< iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC
 aws --profile ovh-$BUCKET s3 cp /tmp/pixel.png s3://$BUCKET/test/pixel.png --acl public-read --content-type image/png
 aws --profile ovh-$BUCKET s3 ls s3://$BUCKET/test/
 aws --profile ovh-$BUCKET s3 ls
-curl -s -o /dev/null -w '%{http_code}\n' https://$BUCKET.s3.bhs.io.cloud.ovh.net/test/pixel.png
-curl -s -o /dev/null -w '%{http_code}\n' https://$BUCKET.s3.bhs.io.cloud.ovh.net/
+curl -s -o /dev/null -w '%{http_code}\n' https://$BUCKET.s3.$S3_REGION.io.cloud.ovh.net/test/pixel.png
+curl -s -o /dev/null -w '%{http_code}\n' https://$BUCKET.s3.$S3_REGION.io.cloud.ovh.net/
 ```
 
 > **Vérifier**
@@ -150,7 +151,7 @@ publicBuckets:
   files:                       # nom du proxy, et sous-domaine : files<suffixe>.<zone>
     namespace: <ns>
     bucket: <cluster>-<ns>
-    region: bhs
+    region: <region>
 ```
 
 Puis :
@@ -196,8 +197,8 @@ tenants:
   <ns>:
     appSecrets:
       s3-env:
-        S3_ENDPOINT: https://s3.bhs.io.cloud.ovh.net
-        S3_REGION: bhs
+        S3_ENDPOINT: https://s3.<region>.io.cloud.ovh.net
+        S3_REGION: <region>
         S3_BUCKET: <cluster>-<ns>
         S3_PUBLIC_URL: https://files<suffixe>.<zone>
         AWS_ACCESS_KEY_ID: <clé d'accès>
@@ -392,7 +393,7 @@ publicBuckets:
   files-prod:
     namespace: <ns>-prod
     bucket: <cluster>-<ns>-prod
-    region: bhs
+    region: <region>
     host: files.<zone>
 ```
 
