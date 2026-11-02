@@ -77,8 +77,9 @@ make diff
 
 ### 2 · Créer le dépôt k3s-test
 
-1. Sur GitHub, `augustinde/k3s-lab`, **Use this template**, **Create a new repository** : nom `k3s-test`, **Private**.
-2. Dans WSL :
+1. Sur GitHub, `augustinde/k3s-lab`, **Settings**, **General** : coche **Template repository**. Le bouton **Use this template** n'apparaît qu'ensuite.
+2. Sur la page du dépôt, **Use this template**, **Create a new repository** : propriétaire `augustinde`, nom `k3s-test`, **Private**, sans cocher *Include all branches*.
+3. Dans WSL :
 
 ```bash
 git clone git@github.com:augustinde/k3s-test.git ~/k3s-test
@@ -88,14 +89,14 @@ make envs
 make tunnel status
 ```
 
-3. Dans `~/.zshrc`, remplace la ligne `KUBECONFIG` de la [procédure, étape 5.2](/k3s-lab/procedure/05-piloter-le-cluster-depuis-ton-poste) par la fonction `projet` de la même étape, puis `exec zsh`.
+4. Dans `~/.zshrc`, remplace la ligne `KUBECONFIG` de la [procédure, étape 5.2](/k3s-lab/procedure/05-piloter-le-cluster-depuis-ton-poste) par la fonction `projet` de la même étape, puis `exec zsh`.
 
 > **Vérifier** · `make envs` affiche `test   k3s-test profil medium  ubuntu@148.113.205.126`, et `make status` montre le nœud `Ready` et tous les pods en `Running`. Rien n'a changé côté GitHub : même API, même audience, même certificat.
 {.is-success}
 
 ### 3 · Nettoyer le modèle
 
-Une fois `k3s-test` utilisé au quotidien, une PR sur k3s-lab retire `environments/test` ; puis, dans k3s-lab, Settings, General, coche **Template repository**. `~/k3s-lab` ne sert plus qu'à faire évoluer le modèle ; les projets récupèrent ses évolutions comme décrit dans [Créer un projet](/k3s-lab/nouveau-projet).
+Une fois `k3s-test` utilisé au quotidien, une PR sur k3s-lab retire `environments/test` : les prochains projets partiront d'un modèle sans valeurs. `~/k3s-lab` ne sert plus qu'à faire évoluer le modèle ; les projets récupèrent ses évolutions comme décrit dans [Créer un projet](/k3s-lab/nouveau-projet).
 
 > **Vérifier** · La page du dépôt k3s-lab affiche le bouton vert **Use this template**, et `environments/` n'y contient plus que `example`.
 {.is-success}
