@@ -32,7 +32,7 @@ ssh-keygen -lf ~/.ssh/id_ed25519.pub            # même empreinte que sous Windo
 Chaque projet a son dépôt GitHub **privé**, créé depuis le modèle `augustinde/k3s-lab` (bouton **Use this template**), et cloné dans ton espace Linux :
 
 ```bash
-git clone git@github.com:augustinde/<projet>.git ~/<projet>
+git clone https://github.com/augustinde/<projet>.git ~/<projet>
 cd ~/<projet>
 git status --ignored | grep .kube        # .kube/ sera ignoré
 ```

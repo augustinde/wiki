@@ -49,6 +49,17 @@ Projet de validation du modèle : un VPS OVH au Canada, deux applications de dé
 
 Dans les deux dépôts : variables `K8S_API_HOST` = `k8s-api-test.augustinde.dev` et `K8S_CA_DATA` ; environnements `test` (branche `main`) et `prod` (tag `v*`) avec les secrets `CF_ACCESS_CLIENT_ID` et `CF_ACCESS_CLIENT_SECRET`. L'audience OIDC `k3s-test` est écrite dans `.github/workflows/deploy.yml`, les namespaces dans `ci-cd.yml`.
 
+## Stockage S3
+
+| | Test | Prod |
+| --- | --- | --- |
+| Bucket OVH (région `bhs`) | `k3s-test-demo` | `k3s-test-demo-prod` |
+| Utilisateur S3 | `k3s-test-demo` | `k3s-test-demo-prod` |
+| Adresse publique | `https://files-test.augustinde.dev` | `https://files.augustinde.dev` |
+| Proxy | `files`, namespace `demo` | `files-prod`, namespace `demo-prod` |
+
+À mettre en place avec la [procédure, étape 15](/k3s-lab/procedure/15-stockage-s3) ; ajuste les noms si OVH les refuse.
+
 ## Surveillance
 
 - Alertes : salon Discord, webhook `k3s-lab` ; les titres portent `· k3s-test`.
@@ -82,7 +93,7 @@ make diff
 3. Dans WSL :
 
 ```bash
-git clone git@github.com:augustinde/k3s-test.git ~/k3s-test
+git clone https://github.com/augustinde/k3s-test.git ~/k3s-test
 cp -a ~/k3s-lab/.kube ~/k3s-test/
 cd ~/k3s-test
 make envs

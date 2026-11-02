@@ -17,7 +17,7 @@ Le dépôt d'un projet (copie du modèle `k3s-lab`) sépare les valeurs du proje
 ├── environments/
 │   ├── example/                    modèle copié par make init (valeurs à remplacer)
 │   └── <env>/                      un dossier par serveur
-│       ├── values.yaml             cluster, profil, zone, tunnel, maintenance, namespaces, bases, services
+│       ├── values.yaml             cluster, profil, zone, tunnel, maintenance, namespaces, bases, services, buckets
 │       ├── inventory.yml           IP et utilisateur SSH du serveur
 │       ├── secrets.yaml            tunnel, jeton Access, mots de passe, webhook, PAT GHCR (chiffré)
 │       ├── databases/              une base = un fichier (app.yaml, app-prod.yaml)
@@ -36,6 +36,7 @@ Le dépôt d'un projet (copie du modèle `k3s-lab`) sépare les valeurs du proje
 │       ├── cloudflared/            connecteur Cloudflare Tunnel
 │       ├── tenant/                 namespace sécurisé + droits GitHub (OIDC et compte de test)
 │       ├── postgres/               cluster CNPG + seed + IP d'administration
+│       ├── s3-proxy/               fichiers publics d'un bucket S3, en lecture, derrière le cache Cloudflare
 │       └── app/                    service HTTP générique (Spring Boot compris)
 ├── ci/                             exemple de job GitHub de déploiement, à copier dans une application
 └── scripts/

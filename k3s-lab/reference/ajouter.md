@@ -23,6 +23,8 @@ Un ajout = une entrée dans `environments/<env>/values.yaml` + un fichier de val
 3. Secrets applicatifs, si besoin : `tenants.<namespace>.appSecrets.<nom>-env` via `make secrets-edit`, puis `make platform`, référencés par `envFromSecrets` dans `deploy/values-test.yaml`.
 4. Côté GitHub : étapes 0.2, 0.3 et 10.1, puis Run workflow.
 
+**Fichiers publics (images)** : un bucket OVH et une entrée sous `publicBuckets:`, puis `make apps` ; les identifiants d'écriture de l'application dans `tenants.<ns>.appSecrets.s3-env`. Détail : [procédure, étape 15](/k3s-lab/procedure/15-stockage-s3).
+
 **Nouveau namespace** : une entrée sous `tenants:` crée le namespace sécurisé, son quota et son propre compte GitHub (`make deployer-kubeconfig NS=<namespace>`). Un nom en `-prod` étiquette ses alertes 🔴 PROD. La somme des quotas doit tenir dans la mémoire laissée par la plateforme (`make config-check`).
 
 **Nouvelle base** :
