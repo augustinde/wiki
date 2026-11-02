@@ -1,0 +1,43 @@
+# Wiki.js 2.5 + PostgreSQL, en local : http://localhost:3000
+# Lancer depuis ce dossier : docker compose up -d. Guide : page outils/installation du wiki.
+# Contenu synchronisé avec ce dépôt (Administration > Stockage > Git).
+name: wiki-stack
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_USER: wikijs
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD manquant dans .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wikijs -d wiki"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  wiki:
+    image: ghcr.io/requarks/wiki:2.5.315
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: wikijs
+      DB_PASS: ${DB_PASSWORD}
+      DB_NAME: wiki
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      # Cache et copie locale du dépôt git (évite un nouveau clone à chaque recréation)
+      - wiki-data:/wiki/data
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  wiki-data:

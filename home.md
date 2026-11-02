@@ -8,14 +8,14 @@ editor: markdown
 dateCreated: 2026-11-02T12:00:00.000Z
 ---
 
-Documentation personnelle, modifiable dans le navigateur et synchronisée avec le dépôt GitHub `augustinde/wiki`.
+Documentation personnelle, modifiable dans le navigateur et synchronisée avec le dépôt GitHub `augustinde/wiki`. Le wiki tourne en local sous Docker : la pile est dans le dossier `docker/` du dépôt.
 
 ## Sections
 
 | Section | Contenu |
 | --- | --- |
 | [k3s-lab](/k3s-lab) | Environnement k3s rejouable sur VPS OVH : mise en route, procédure, exploitation, référence |
-| [Outils](/outils/wiki) | Ce wiki : installation, synchronisation git, ajout de pages |
+| [Outils](/outils/wiki) | Ce wiki : [installation](/outils/installation), synchronisation git, ajout de pages |
 
 ## Ajouter une section
 

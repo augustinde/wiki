@@ -8,13 +8,13 @@ editor: markdown
 dateCreated: 2026-11-02T12:00:00.000Z
 ---
 
-Ce wiki tourne sur ton poste : Wiki.js 2.5 et PostgreSQL dans Docker, sur `http://localhost:3000`. Chaque page existe aussi en fichier Markdown dans le dépôt privé `augustinde/wiki`, synchronisé dans les deux sens toutes les 5 minutes.
+Ce wiki tourne sur ton PC : Wiki.js 2.5 et PostgreSQL dans Docker, sur `http://localhost:3000`. Installation : [Installer le wiki sur un PC](/outils/installation). Chaque page existe aussi en fichier Markdown dans le dépôt privé `augustinde/wiki`, synchronisé dans les deux sens toutes les 5 minutes.
 
 ## Où sont les choses
 
 | Élément | Emplacement |
 | --- | --- |
-| Pile Docker | `~/wiki-stack` dans WSL : `compose.yaml`, `.env` (mot de passe de la base) |
+| Pile Docker | dossier `docker/` de ce dépôt (`~/wiki/docker` dans WSL) : `compose.yaml`, `.env` local (mot de passe de la base, ignoré par git) |
 | Contenu | dépôt `augustinde/wiki`, un fichier `.md` par page, un dossier par section |
 | Base PostgreSQL | volume Docker `wiki-stack_db-data` : comptes, réglages, index de recherche |
 | Clé de synchronisation | clé SSH de déploiement du dépôt, collée dans Administration, Stockage, Git |
@@ -22,7 +22,7 @@ Ce wiki tourne sur ton poste : Wiki.js 2.5 et PostgreSQL dans Docker, sur `http:
 ## Commandes
 
 ```bash
-cd ~/wiki-stack
+cd ~/wiki/docker
 docker compose up -d          # démarrer (redémarre seul ensuite avec Docker)
 docker compose ps             # état : wiki et db en "running", db en "healthy"
 docker compose logs -f wiki   # journal, dont la synchronisation git
@@ -68,8 +68,8 @@ Les images vont dans le dépôt à côté des pages (par exemple `homelab/assets
 
 ## Mettre à jour Wiki.js
 
-1. Dans `compose.yaml`, remplace la version de l'image `ghcr.io/requarks/wiki` par la nouvelle (liste sur la page *Releases* du projet requarks/wiki).
-2. `docker compose pull && docker compose up -d`
+1. Dans `docker/compose.yaml`, remplace la version de l'image `ghcr.io/requarks/wiki` par la nouvelle (liste sur la page *Releases* du projet requarks/wiki).
+2. Commit et push de ce changement, puis dans `~/wiki/docker` : `git pull && docker compose pull && docker compose up -d`
 
 > **Vérifier** · `docker compose ps` montre `wiki` en `running`, et Administration, **Informations système** affiche la nouvelle version.
 {.is-success}
