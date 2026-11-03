@@ -17,7 +17,7 @@ Choisis le niveau le plus bas qui couvre ce que tu veux tester : plus il est bas
 | 2 · Couche | Mise à jour d'une couche | `make platform`, `make data` ou `make apps` | Rien : apply idempotent |
 | 3 · Base | Création d'une base et de son seed | `make db-reset DB=app` | Cette base et ses volumes |
 | 4 · Service Helmfile | Déploiement, probes, ingress | `make app-redeploy APP=whoami` | Ce service |
-| 4 · Service GitHub | Le chemin exact de GitHub | Actions, CI/CD, **Run workflow** dans le dépôt | Rien : mise à jour en place |
+| 4 · Service GitHub | Le chemin exact de GitHub | Actions, **Déployer** dans le dépôt de l'application | Rien : mise à jour en place |
 
 Après un niveau 0 ou 1, le cluster a une nouvelle autorité de certification : lance `make ci-ca` et mets à jour la variable `K8S_CA_DATA` dans les dépôts d'applications (étape 10.1). Le tunnel, Cloudflare Access et les droits OIDC se remettent en place tout seuls.
 

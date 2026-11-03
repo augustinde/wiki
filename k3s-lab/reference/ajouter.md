@@ -21,7 +21,7 @@ Un ajout = une entrée dans `environments/<env>/values.yaml` + un fichier de val
 1. Créer le dépôt à partir d'api-demo ou front-demo (dossier `deploy/` et workflows), en adaptant `deploy/values-*.yaml`, `RELEASE`, les namespaces de `ci-cd.yml` et `K8S_AUDIENCE` = `<cluster>` dans `deploy.yml` (procédure, étape 0).
 2. L'autoriser : `{repository, environment}` sous `tenants.<namespace>.githubOidc`, puis `make bootstrap` (liste des dépôts de l'API) et `make platform` (droits du namespace). Contrôle : `make oidc-test REPO=<propriétaire>/<dépôt>`.
 3. Secrets applicatifs, si besoin : `tenants.<namespace>.appSecrets.<nom>-env` via `make secrets-edit`, puis `make platform`, référencés par `envFromSecrets` dans `deploy/values-test.yaml`.
-4. Côté GitHub : étapes 0.2, 0.3 et 10.1, puis Run workflow.
+4. Côté GitHub : étapes 0.2, 0.3, 10.1 et 11.2, puis **Déployer** (test) et **Release** (prod).
 
 **Fichiers publics (images)** : un bucket OVH et une entrée sous `publicBuckets:`, puis `make apps` ; les identifiants d'écriture de l'application dans `tenants.<ns>.appSecrets.s3-env`. Détail : [procédure, étape 15](/k3s-lab/procedure/15-stockage-s3).
 

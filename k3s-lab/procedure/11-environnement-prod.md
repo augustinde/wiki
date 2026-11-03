@@ -16,7 +16,7 @@ La prod tourne sur le même serveur, dans son propre namespace, avec sa propre b
 | Base PostgreSQL | `app`, 5ᵉ adresse de `<route>` | `app-prod`, adresse suivante | `10.43.0.100`, `10.43.0.101` |
 | Adresses | `<app><suffixe>.<zone>` | `<app>.<zone>` | `api-demo-test.augustinde.dev`, `api-demo.augustinde.dev` |
 | Identité GitHub | `github:<propriétaire>/<dépôt>:test` | `github:<propriétaire>/<dépôt>:prod` | |
-| Déclencheur | push sur `main` | tag `v*`, par exemple `v1.0.0` | |
+| Lancement | Actions, **Déployer** (test) | Actions, **Release** (patch, minor ou major) | |
 
 Le suffixe `-prod` du namespace étiquette ses alertes 🔴 PROD (étape 12).
 
@@ -84,50 +84,45 @@ git add $ENV_DIR && git commit -m "Environnement prod" && git push
 Dans **chaque** dépôt d'application :
 
 1. Settings, **Environments**, **New environment**, nom `prod`.
-2. **Deployment branches and tags** : Selected branches and tags, **Add deployment branch or tag rule**. Dans la fenêtre, passe **Ref type** de Branch (choix par défaut) à **Tag**, puis motif `v*`. Une règle `v*` de type Branch bloque tous les tags.
-3. **Environment secrets** : `CF_ACCESS_CLIENT_ID` et `CF_ACCESS_CLIENT_SECRET`, avec les mêmes valeurs qu'en test.
+2. **Deployment branches and tags** : Selected branches and tags, **Add deployment branch or tag rule**, Ref type **Branch**, motif `main`. Les workflows **Release** et **Déployer** se lancent depuis `main` : sans cette règle, GitHub refuse le déploiement. Une ancienne règle de type Tag `v*` peut rester, elle ne gêne pas.
+3. **Required reviewers** : coche-le et ajoute-toi. Chaque mise en prod attend alors ta validation dans Actions (bouton **Review deployments**), ce qui évite de livrer en prod par un mauvais clic.
+4. **Environment secrets** : `CF_ACCESS_CLIENT_ID` et `CF_ACCESS_CLIENT_SECRET`, avec les mêmes valeurs qu'en test.
 
-Pas d'approbation à ajouter : c'est le tag qui décide de la mise en prod.
-
-> **Vérifier** · La page Environments liste `test` (branche `main`) et `prod` (tag `v*`), chacun avec deux secrets.
+> **Vérifier** · La page Environments liste `test` (branche `main`) et `prod` (branche `main`, une protection), chacun avec deux secrets.
 {.is-success}
 
-## 11.3 · Workflow des applications
+## 11.3 · Workflows des applications
 
-Le workflow `ci-cd.yml` des dépôts de démo, à reprendre dans chaque application :
+Aucun déploiement n'est automatique. Les dépôts de démo ont trois workflows, à reprendre dans chaque application :
 
-- construit chaque pull request sans rien publier : c'est le contrôle `build` affiché sur la PR ;
-- déploie en test à chaque push sur `main`, avec `deploy/values-test.yaml` ;
-- sur un tag `v*`, réétiquette l'image déjà construite pour ce commit et la déploie en prod, avec `deploy/values-prod.yaml`.
+| Workflow | Lancement | Effet |
+| --- | --- | --- |
+| **CI** (`ci-cd.yml`) | pull request, push sur `main` | build de contrôle sur les PR ; sur `main`, image `sha-<commit>` publiée, rien n'est déployé |
+| **Déployer** (`deploy-version.yml`) | Actions, **Run workflow** : environnement et version | déploie une image existante. Test : version vide = dernier commit de `main`, ou `vX.Y.Z`, ou `sha-xxxxxxx`. Prod : `vX.Y.Z` seulement, ce qui sert aussi de retour arrière |
+| **Release** (`release.yml`) | Actions, **Run workflow** : `patch`, `minor` ou `major`, commit facultatif | calcule la version suivante depuis le dernier tag (1.4.2 → 1.4.3, 1.5.0 ou 2.0.0), vérifie que l'image du commit existe, la réétiquette sans reconstruction, crée le tag et la Release GitHub (notes générées depuis la version précédente), puis déploie en prod |
 
-Les noms d'hôtes sont dans ces deux fichiers, les namespaces dans `ci-cd.yml`.
+Les noms d'hôtes sont dans `deploy/values-test.yaml` et `deploy/values-prod.yaml`, les namespaces dans `deploy-version.yml` et `release.yml`.
 
 > **Vérifier**
 >
 > 1. Sur une pull request, le contrôle **build** est vert.
-> 2. Après la fusion, l'onglet Actions montre les jobs `build` et `deploy-test` en vert. Les jobs `release` et `deploy-prod` sont gris : ils ne tournent que sur un tag.
-> 3. Les adresses de test répondent comme à l'étape 10.
+> 2. Après une fusion sur `main`, le workflow **CI** est vert et rien n'est déployé : l'onglet Actions ne montre aucun job de déploiement.
+> 3. **Déployer**, environnement `test`, version vide : le job `deploy` est vert, et les adresses de test répondent comme à l'étape 10.
 >
 > *Si le résultat diffère, ne passe pas à la suite.*
 {.is-success}
 
 ## 11.4 · Première mise en production
 
-Commence par l'API : le front de prod appelle l'API de prod. Sur GitHub, dans le dépôt : **Releases**, **Draft a new release**, **Choose a tag**, saisis `v1.0.0`, **Create new tag on publish**, cible `main`, puis **Publish release**.
+Commence par l'API : le front de prod appelle l'API de prod. Dans le dépôt : **Actions**, **Release**, **Run workflow**, branche `main`, type `minor` (ou `patch`), commit vide, puis **Run workflow**. Le commit livré est le dernier de `main`, celui que tu as déployé en test à l'étape 11.3.
 
-Depuis un clone local, c'est équivalent :
-
-```bash
-git checkout main && git pull
-git tag v1.0.0 && git push origin v1.0.0
-```
-
-Attends que le workflow soit vert, puis fais la même chose dans le dépôt du front.
+Si **Required reviewers** est actif, le job `deploy-prod` attend : **Review deployments**, coche `prod`, **Approve and deploy**. Attends que le workflow soit vert, puis fais la même chose dans le dépôt du front.
 
 > **Vérifier**
 >
-> 1. Le workflow du tag montre `release` et `deploy-prod` en vert, et l'étape **Vérifier l'identité** affiche `github:<propriétaire>/<dépôt>:prod`.
-> 2. Dans WSL (k3s-test) :
+> 1. Le résumé du workflow affiche la version calculée (par exemple `v1.0.0 → v1.1.0 (minor)`), les jobs `release` et `deploy-prod` sont verts, et l'étape **Vérifier l'identité** affiche `github:<propriétaire>/<dépôt>:prod`.
+> 2. L'onglet **Releases** du dépôt montre la nouvelle version, avec la liste des changements depuis la précédente.
+> 3. Dans WSL (k3s-test) :
 >
 > ```bash
 > kubectl -n $NS-prod get deploy
@@ -135,8 +130,10 @@ Attends que le workflow soit vert, puis fais la même chose dans le dépôt du f
 > curl -s https://api-demo.$ZONE/api/demo
 > ```
 >
-> Les déploiements sont en `1/1`, l'image est `ghcr.io/<propriétaire>/api-demo:v1.0.0`, et `curl` renvoie `prod-1` et `prod-2` : la base de prod est bien distincte de celle de test. Dans le navigateur, `https://front-demo.<zone>` affiche ces deux lignes.
+> Les déploiements sont en `1/1`, l'image est `ghcr.io/<propriétaire>/api-demo:<version>`, et `curl` renvoie `prod-1` et `prod-2` : la base de prod est bien distincte de celle de test. Dans le navigateur, `https://front-demo.<zone>` affiche ces deux lignes.
 {.is-success}
+
+**Revenir à la version précédente** : **Actions**, **Déployer**, environnement `prod`, version `vX.Y.Z` précédente (onglet Releases). Aucune nouvelle version n'est créée.
 
 ## 11.5 · Base prod depuis IntelliJ
 
@@ -153,8 +150,13 @@ Dans IntelliJ, une nouvelle source PostgreSQL : host = IP affichée, port `5432`
 
 | Symptôme | Cause | Correctif |
 | --- | --- | --- |
-| `release` : `Image … introuvable` | le tag porte sur un commit jamais construit sur `main` | supprimer le tag (Releases, ou `git push origin :refs/tags/v1.0.0`), puis taguer un commit passé en test |
-| `deploy-prod` refusé : tag non autorisé dans l'environnement | règle `v*` absente de l'environnement `prod`, ou créée en type Branch au lieu de Tag | 11.2 |
+| `release` : `Image … introuvable` | le build de ce commit sur `main` n'est pas terminé, ou a échoué | attendre le workflow **CI** de ce commit, puis relancer Release |
+| `release` : `déjà publié en vX.Y.Z` | ce commit a déjà une version | rien à livrer ; pour la redéployer : **Déployer**, `prod`, cette version |
+| `release` : `Lance la release depuis la branche main` | Run workflow lancé depuis une autre branche | relancer avec **Use workflow from : main** |
+| `deploy-prod` refusé : branche non autorisée dans l'environnement | règle `main` absente de l'environnement `prod` | 11.2 |
+| `deploy-prod` en attente | validation requise (Required reviewers) | **Review deployments**, **Approve and deploy** |
 | `forbidden … User "github:…:prod"` | droits prod absents du cluster | 11.1 (`make platform`), contrôle `make oidc-test … GH_ENV=prod NS=<ns>-prod` |
 | API de prod pas prête | base `app-prod` absente | `make data` |
-| Front de prod en erreur 502 sur `/api` | API de prod pas encore déployée | taguer l'API d'abord |
+| Front de prod en erreur 502 sur `/api` | API de prod pas encore déployée | livrer l'API d'abord |
+
+Une release ratée après la création du tag (déploiement refusé, par exemple) ne se relance pas : corrige la cause, puis **Déployer**, `prod`, la version créée.

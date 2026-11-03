@@ -26,18 +26,18 @@ Limite à connaître : qui peut déployer dans un namespace peut aussi lire ses 
 
 ## Mise en place
 
-Côté cluster, un dépôt est autorisé par une seule déclaration, `tenants.<ns>.githubOidc`, appliquée par `make bootstrap` (API) puis `make platform` (droits). Voir les étapes 1.3, 4.4 et 7.4. Côté GitHub : l'environnement `test` limité à `main` avec les deux secrets Cloudflare (0.3), deux variables de dépôt (10.1), et `K8S_AUDIENCE` = `<cluster>` dans le workflow.
+Côté cluster, un dépôt est autorisé par une seule déclaration, `tenants.<ns>.githubOidc`, appliquée par `make bootstrap` (API) puis `make platform` (droits). Voir les étapes 1.3, 4.4 et 7.4. Côté GitHub : les environnements `test` et `prod` limités à `main` avec les deux secrets Cloudflare (0.3, 11.2), deux variables de dépôt (10.1), et `K8S_AUDIENCE` = `<cluster>` dans le workflow.
 
 ## Le job GitHub
 
-Chaque dépôt d'application contient `.github/workflows/ci-cd.yml`, lancé par un push sur `main`, un tag `v*` ou à la main (Run workflow). Le job `build` publie l'image sur GHCR ; les jobs de déploiement appellent `deploy.yml`, qui suit quatre étapes :
+Chaque dépôt d'application contient trois workflows : **CI** (`ci-cd.yml`) construit l'image à chaque push sur `main` et la publie sur GHCR, sans déployer ; **Déployer** (`deploy-version.yml`) et **Release** (`release.yml`) se lancent à la main et appellent `deploy.yml` (procédure, étape 11.3). `deploy.yml` suit quatre étapes :
 
 1. `cloudflared access tcp` ouvre `127.0.0.1:16443` vers l'API, avec le jeton Access.
 2. `deploy/write-kubeconfig.sh` écrit un kubeconfig sans secret.
 3. Ce kubeconfig appelle `deploy/github-oidc-credential.sh`, qui demande le jeton à GitHub et le renouvelle avant expiration : un `helm --wait` de 5 minutes passe sans erreur.
 4. `helm upgrade --install` déploie l'image avec le chart `deploy/chart`.
 
-Pour une nouvelle application, copie le dossier `deploy/` et le workflow d'un dépôt de démo, puis adapte `deploy/values-test.yaml` (image, port, sondes) et la variable `RELEASE`. Le job doit garder `permissions: id-token: write` et `environment: test`.
+Pour une nouvelle application, copie le dossier `deploy/` et les workflows d'un dépôt de démo, puis adapte `deploy/values-*.yaml` (image, port, sondes, noms d'hôte), la variable `RELEASE` et `K8S_AUDIENCE` dans `deploy.yml`, et les namespaces dans `deploy-version.yml` et `release.yml`. Les jobs doivent garder `permissions: id-token: write` et un `environment` (`test` ou `prod`).
 
 ## Tester depuis ton poste
 

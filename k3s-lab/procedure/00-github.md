@@ -8,14 +8,14 @@ editor: markdown
 dateCreated: 2026-11-02T12:00:00.000Z
 ---
 
-Les applications d'un projet se déploient depuis leur propre dépôt GitHub. À chaque push sur `main`, GitHub construit l'image, la publie sur GHCR et la déploie dans le namespace de test, authentifié par OIDC ; un tag `v*` déploie la même image en prod (étape 11).
+Les applications d'un projet se déploient depuis leur propre dépôt GitHub. À chaque push sur `main`, GitHub construit l'image et la publie sur GHCR, sans la déployer. Les déploiements se lancent à la main dans Actions : **Déployer** pour le test (étape 10), **Release** pour une nouvelle version en prod (étape 11). Ils s'authentifient auprès du cluster par OIDC.
 
 Dans le projet k3s-test, ce sont [api-demo](https://github.com/augustinde/api-demo) (Spring Boot, `GET /api/demo` lit la table `demo` de PostgreSQL) et [front-demo](https://github.com/augustinde/front-demo) (Angular, un écran qui affiche ces données) : ils servent d'exemples dans les étapes 0, 10 et 11. Pour une nouvelle application, pars d'une copie de l'un d'eux et adapte :
 
 | Fichier | À adapter |
 | --- | --- |
 | `.github/workflows/deploy.yml` | `K8S_AUDIENCE` = `<cluster>` du projet |
-| `.github/workflows/ci-cd.yml` | les namespaces de test et de prod, ceux déclarés sous `tenants` |
+| `.github/workflows/deploy-version.yml`, `release.yml` | les namespaces de test et de prod, ceux déclarés sous `tenants` |
 | `deploy/values-test.yaml`, `deploy/values-prod.yaml` | image, port, sondes, noms d'hôte `<app><suffixe>.<zone>` et `<app>.<zone>` |
 
 Trois réglages se font avant le cluster. Ceux qui ont besoin d'un cluster en marche (variables, premier déploiement) sont à l'étape 10.
@@ -32,7 +32,7 @@ Trois réglages se font avant le cluster. Ceux qui ont besoin d'un cluster en ma
 
 Chaque dépôt est sur GitHub, branche `main`, et déclaré dans `environments/<env>/values.yaml` sous `tenants.<ns>.githubOidc` ([Mise en route, 3.5](/k3s-lab/mise-en-route/03-cles-depot)).
 
-> **Vérifier** · Dans l'onglet **Actions** de chaque dépôt, le workflow **CI/CD** a un job `build` vert et un job `deploy` gris (ignoré). C'est normal tant que la variable `K8S_API_HOST` n'existe pas.
+> **Vérifier** · Dans l'onglet **Actions** de chaque dépôt, le workflow **CI** a un job `build` vert. Aucun déploiement n'a lieu : ils se lancent à la main, à partir de l'étape 10.
 {.is-success}
 
 ## 0.2 · Rendre les paquets GHCR publics

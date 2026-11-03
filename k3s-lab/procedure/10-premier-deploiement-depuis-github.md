@@ -33,11 +33,13 @@ Vérifie aussi que `K8S_AUDIENCE`, dans `.github/workflows/deploy.yml` du dépô
 
 ## 10.2 · Déployer l'API
 
-Dans le dépôt (k3s-test : api-demo) : **Actions**, workflow **CI/CD**, **Run workflow**, branche `main`, puis **Run workflow**. Compte 3 à 4 minutes.
+Le workflow **CI** construit l'image à chaque push sur `main`, sans la déployer. Dans le dépôt (k3s-test : api-demo) : **Actions**, workflow **CI**, vérifie que le dernier passage sur `main` est vert. Puis **Actions**, workflow **Déployer**, **Run workflow**, branche `main`, environnement `test`, version vide, et **Run workflow**. Compte 1 à 2 minutes.
+
+Si le dépôt n'a pas encore le workflow **Déployer** (ancienne version des dépôts de démo), **CI/CD**, **Run workflow** fait le build et le déploiement en test.
 
 > **Vérifier**
 >
-> 1. Les jobs `build` et `deploy-test` sont verts.
+> 1. Les jobs `resolve` et `deploy` sont verts, et le résumé indique l'image `sha-<commit>` déployée en **test**.
 > 2. Dans le job de déploiement, l'étape **Vérifier l'identité** affiche `github:<propriétaire>/<dépôt>:test`.
 > 3. Dans WSL (k3s-test) :
 >
@@ -51,7 +53,7 @@ Dans le dépôt (k3s-test : api-demo) : **Actions**, workflow **CI/CD**, **Run w
 
 ## 10.3 · Déployer le front
 
-Même manipulation dans le dépôt du front (k3s-test : front-demo).
+Même manipulation dans le dépôt du front (k3s-test : front-demo) : **Déployer**, `test`, version vide.
 
 > **Vérifier** · Jobs verts, identité `github:<propriétaire>/<dépôt>:test`, `kubectl -n $NS get deploy front-demo` en `1/1`. Dans le navigateur, `https://front-demo<suffixe>.<zone>` affiche le tableau avec les deux lignes.
 {.is-success}
@@ -64,7 +66,7 @@ make db-psql DB=app
 
 Dans psql : `INSERT INTO demo (label) VALUES ('depuis psql');`, puis `\q`.
 
-> **Vérifier** · Après rechargement, l'écran du front affiche trois lignes. Désormais, chaque push sur `main` redéploie l'application concernée.
+> **Vérifier** · Après rechargement, l'écran du front affiche trois lignes. Désormais, chaque push sur `main` construit une nouvelle image ; elle part en test quand tu lances **Déployer**.
 {.is-success}
 
 ## Si un job échoue
@@ -72,6 +74,7 @@ Dans psql : `INSERT INTO demo (label) VALUES ('depuis psql');`, puis `\q`.
 | Symptôme | Cause probable | Correctif |
 | --- | --- | --- |
 | Job de déploiement gris (ignoré) | `K8S_API_HOST` absente ou créée dans l'environnement | la créer au niveau du dépôt (10.1) |
+| `resolve` : `Image … introuvable` | build du dernier commit pas terminé ou en échec | attendre le workflow **CI**, puis relancer |
 | Échec à « Kubeconfig OIDC » ou connexion refusée, journal cloudflared en erreur | secrets Cloudflare faux, ou politique `GitHub deploy` absente | 0.3, et Mise en route 4.7 ; refaire le test 7.5 |
 | `Unauthorized` | `K8S_CA_DATA` périmée, `K8S_AUDIENCE` différente de `<cluster>`, dépôt non déclaré sous `githubOidc`, ou job sans environnement | `make ci-ca` (10.1) ; 1.3 puis `make bootstrap` |
 | `forbidden … User "github:…"` | identité reconnue, sans droits dans ce namespace | 1.3 puis `make platform` ; contrôle 7.4 |

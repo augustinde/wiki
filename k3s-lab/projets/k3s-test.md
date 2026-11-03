@@ -43,12 +43,12 @@ Projet de validation du modèle : un VPS OVH au Canada, deux applications de dé
 
 ## Applications GitHub
 
-| Dépôt | Test (push sur `main`) | Prod (tag `v*`) |
+| Dépôt | Test (Actions, **Déployer**) | Prod (Actions, **Release**) |
 | --- | --- | --- |
 | [augustinde/api-demo](https://github.com/augustinde/api-demo) | `https://api-demo-test.augustinde.dev/api/demo` | `https://api-demo.augustinde.dev/api/demo` |
 | [augustinde/front-demo](https://github.com/augustinde/front-demo) | `https://front-demo-test.augustinde.dev` | `https://front-demo.augustinde.dev` |
 
-Dans les deux dépôts : variables `K8S_API_HOST` = `k8s-api-test.augustinde.dev` et `K8S_CA_DATA` ; environnements `test` (branche `main`) et `prod` (tag `v*`) avec les secrets `CF_ACCESS_CLIENT_ID` et `CF_ACCESS_CLIENT_SECRET`. L'audience OIDC `k3s-test` est écrite dans `.github/workflows/deploy.yml`, les namespaces dans `ci-cd.yml`.
+Dans les deux dépôts : variables `K8S_API_HOST` = `k8s-api-test.augustinde.dev` et `K8S_CA_DATA` ; environnements `test` et `prod` (branche `main`, validation requise en prod) avec les secrets `CF_ACCESS_CLIENT_ID` et `CF_ACCESS_CLIENT_SECRET`. L'audience OIDC `k3s-test` est écrite dans `.github/workflows/deploy.yml`, les namespaces dans `deploy-version.yml` et `release.yml`. Aucun déploiement automatique : CI construit l'image sur `main`, **Déployer** l'envoie en test, **Release** (`patch`, `minor`, `major`) crée la version et la met en prod.
 
 ## Stockage S3
 

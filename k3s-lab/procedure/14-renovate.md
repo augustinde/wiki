@@ -30,11 +30,11 @@ Passage chaque lundi avant 9 h. Les mises à jour mineures sont regroupées en u
 
 | PR | Ce qu'il faut faire |
 | --- | --- |
-| Correctifs (api-demo, front-demo) | rien : fusionnée automatiquement dès que le build passe, puis déployée en test. Elle partira en prod au prochain tag |
-| Mises à jour mineures ou majeures | lire le changelog dans la PR, fusionner si le build est vert, contrôler l'appli en test, puis taguer pour la prod |
+| Correctifs (api-demo, front-demo) | fusionnée automatiquement dès que le build passe ; l'image est construite, à déployer en test avec **Déployer**, puis en prod avec **Release** (`patch`) |
+| Mises à jour mineures ou majeures | lire le changelog dans la PR, fusionner si le build est vert, **Déployer** en test, contrôler l'appli, puis **Release** pour la prod |
 | Charts (k3s-lab) | fusionner dans le modèle ; puis, dans chaque projet, reporter le modèle ([Créer un projet](/k3s-lab/nouveau-projet), dernière section), `make diff`, `make platform`, et refaire le contrôle 9.2 |
 
 Pour forcer un passage sans attendre lundi : coche la case correspondante dans la Dependency Dashboard.
 
-> **Vérifier** · Après le premier lundi : les PR ouvertes portent le label `dépendances` ; une PR de correctifs a été fusionnée seule, et son déploiement en test est vert dans Actions.
+> **Vérifier** · Après le premier lundi : les PR ouvertes portent le label `dépendances` ; une PR de correctifs a été fusionnée seule, et son workflow **CI** est vert dans Actions.
 {.is-success}
