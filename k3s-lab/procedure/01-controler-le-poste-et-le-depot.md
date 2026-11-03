@@ -1,5 +1,5 @@
 ---
-title: "Étape 1 · Contrôler le poste et le dépôt"
+title: "Étape 01 · Contrôler le poste et le dépôt"
 description: ""
 published: true
 date: 2026-11-02T12:00:00.000Z

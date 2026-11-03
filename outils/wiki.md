@@ -66,6 +66,8 @@ Un encadré s'écrit comme une citation suivie de sa classe (`is-info`, `is-succ
 {.is-success}
 ```
 
+La barre de gauche range les pages par **titre**, en ordre alphabétique : `Étape 10` passerait avant `Étape 2`. Numérote donc sur deux chiffres dès qu'une série dépasse 9 pages (`Étape 01`, `Étape 02`… `Étape 15`), dans le titre comme dans le nom du fichier.
+
 Les images vont dans le dépôt à côté des pages (par exemple `homelab/assets/schema.svg`) et s'insèrent avec `![Schéma](/homelab/assets/schema.svg)`.
 
 ## Mettre à jour Wiki.js

@@ -1,5 +1,5 @@
 ---
-title: "Étape 5 · Piloter le cluster depuis ton poste"
+title: "Étape 05 · Piloter le cluster depuis ton poste"
 description: ""
 published: true
 date: 2026-11-02T12:00:00.000Z
