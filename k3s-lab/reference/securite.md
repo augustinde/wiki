@@ -54,3 +54,5 @@ Repère mesuré sur k3s-test (`medium`, 8 Go) : 74 % de la mémoire utilisée à
 | `make` : « Préciser l'environnement » | plusieurs dossiers dans `environments/` | ajouter `ENV=<env>` à la commande, ou `projet <dossier> <env>` |
 | `make config-check` : IP de base hors de la route | `adminAccess.clusterIP` d'une base copiée d'un autre projet | prendre une adresse de `cloudflare.privateRoute` |
 | `make platform` ou `bootstrap` : valeur manquante après un report du modèle | nouvelle clé apparue dans le modèle | comparer `values.yaml` avec `environments/example/values.yaml`, ajouter la clé |
+| Bases saturées (`too many clients already`) après un redémarrage, connexions `postgres [local] authentication` bloquées | noyau Ubuntu 7.0.0-41 ou plus récent, AppArmor refuse les signaux dans les conteneurs | [Incident AppArmor](/k3s-lab/exploitation/incident-apparmor) |
+| `make bootstrap` ou `make node-check` : « signaux refusés par AppArmor » | même cause, profil corrigé absent ou insuffisant | [Incident AppArmor](/k3s-lab/exploitation/incident-apparmor), retour arrière |

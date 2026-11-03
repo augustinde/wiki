@@ -16,7 +16,7 @@ Alertmanager envoie les alertes de Prometheus dans un salon Discord. Le titre in
 | 🟡 TEST | les autres namespaces applicatifs | 🟡 TEST · k3s-test · KubeDeploymentReplicasMismatch |
 | ⚙️ INFRA | nœud et plateforme (`monitoring`, `cloudflared`, `kube-system`…) | ⚙️ INFRA · k3s-test · MemoireNoeudSaturee |
 
-Seules les alertes `warning` et `critical` partent, regroupées par nom et namespace, avec un message « ✅ Résolu » à la fin. Les titres et le cadre sont en français ; le texte des règles fournies par kube-prometheus-stack reste en anglais. Trois règles sont ajoutées, en français : tunnel sans connecteur, PostgreSQL arrêté, mémoire du nœud au-delà de 90 %. Gabarits et règles : `helmfile/values/alerting.yaml`.
+Seules les alertes `warning` et `critical` partent, regroupées par nom et namespace, avec un message « ✅ Résolu » à la fin. Les titres et le cadre sont en français ; le texte des règles fournies par kube-prometheus-stack reste en anglais. Quatre règles sont ajoutées, en français : tunnel sans connecteur, PostgreSQL arrêté ou sans métriques, connexions PostgreSQL au-delà de 80 %, mémoire du nœud au-delà de 90 %. Gabarits et règles : `helmfile/values/alerting.yaml`.
 
 ## 12.1 · Créer le webhook Discord
 
@@ -66,7 +66,7 @@ make platform
 > kubectl -n monitoring get prometheusrules | grep k3s-lab
 > ```
 >
-> Un pod `alertmanager-monitoring-kube-prometheus-alertmanager-0` en `2/2 Running`, et une ressource de règles contenant `k3s-lab`. Dans Grafana, Alerting, Alert rules : les règles `TunnelCloudflareSansConnecteur`, `BasePostgresArretee` et `MemoireNoeudSaturee` apparaissent.
+> Un pod `alertmanager-monitoring-kube-prometheus-alertmanager-0` en `2/2 Running`, et une ressource de règles contenant `k3s-lab`. Dans Grafana, Alerting, Alert rules : les règles `TunnelCloudflareSansConnecteur`, `BasePostgresArretee`, `ConnexionsPostgresSaturees` et `MemoireNoeudSaturee` apparaissent.
 {.is-success}
 
 ## 12.4 · Envoyer une alerte de test

@@ -16,7 +16,9 @@ make bootstrap
 
 Ansible lit `environments/<env>/values.yaml` et le profil, puis applique trois rôles : `base` (mises à jour, paquets, SSH durci, fail2ban), `firewall` (ufw) et `k3s` (installation, Traefik interne, OIDC). Compte 3 à 6 minutes, davantage si le serveur est loin (la latence ralentit chaque tâche).
 
-> **Vérifier** · La dernière ligne, `PLAY RECAP`, affiche `<nœud> : ok=… changed=… unreachable=0 failed=0`. Si `failed` vaut 1 ou plus, lis la tâche en rouge juste au-dessus, corrige, puis relance `make bootstrap` : il reprend sans casser ce qui est fait.
+Le bootstrap pose aussi le profil AppArmor corrigé des conteneurs ([Incident AppArmor](/k3s-lab/exploitation/incident-apparmor)). Si une mise à jour l'exige (nouveau noyau), il redémarre ensuite le serveur, attend son retour, puis contrôle le nœud : compte 2 à 3 minutes de plus.
+
+> **Vérifier** · L'avant-dernière tâche, `Résumé`, affiche `Noyau …, nœud Ready, 0 base(s) joignable(s), aucun signal refusé par AppArmor.` La dernière ligne, `PLAY RECAP`, affiche `<nœud> : ok=… changed=… unreachable=0 failed=0`. Si `failed` vaut 1 ou plus, lis la tâche en rouge juste au-dessus, corrige, puis relance `make bootstrap` : il reprend sans casser ce qui est fait.
 {.is-success}
 
 ## 4.2 · Contrôler le durcissement SSH

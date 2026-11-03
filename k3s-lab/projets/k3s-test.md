@@ -18,6 +18,7 @@ Projet de validation du modèle : un VPS OVH au Canada, deux applications de dé
 | Environnement | `test` : `environments/test/` |
 | Cluster (`$CLUSTER`) | `k3s-test` |
 | Machine | OVH VPS-2, 8 Go, 4 vCPU, Ubuntu 26.04, profil `medium` |
+| Noyau | `7.0.0-28` imposé et noyaux bloqués (`apt-mark hold`) depuis l'[incident AppArmor](/k3s-lab/exploitation/incident-apparmor) du 3 novembre 2026 ; retour au dernier noyau : section « Revenir au dernier noyau » de la page d'incident |
 | Serveur (`$IP`) | `148.113.205.126`, utilisateur `ubuntu`, nœud `vps-test` |
 | Zone, suffixe | `augustinde.dev`, `-test` |
 | Port local du tunnel SSH | `6443` |
