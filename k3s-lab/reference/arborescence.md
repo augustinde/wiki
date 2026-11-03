@@ -27,7 +27,9 @@ Le dépôt d'un projet (copie du modèle `k3s-lab`) sépare les valeurs du proje
 │   ├── load-env.yml                lit values.yaml et le profil pour les playbooks
 │   ├── group_vars/all.yml          réglages communs, et variables dérivées de l'environnement
 │   ├── site.yml / reset.yml        bootstrap complet / désinstallation de k3s
-│   └── roles/ base · firewall · k3s  (k3s : config, Traefik interne, OIDC)
+│   ├── check.yml                   contrôles du nœud sans rien changer (make node-check)
+│   └── roles/ base · firewall · k3s · verify  (k3s : config, Traefik interne, OIDC, profil AppArmor ;
+│                                   verify : redémarrage si besoin, nœud, bases, AppArmor)
 ├── helmfile/
 │   ├── helmfile.yaml.gotmpl        couches platform, data, apps ; charge l'environnement
 │   ├── versions.yaml               versions exactes des charts (Renovate)
