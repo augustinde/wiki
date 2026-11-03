@@ -47,5 +47,5 @@ kubectl -n $NS scale deploy <app> --replicas=0
 > kubectl -n $NS scale deploy <app> --replicas=1
 > ```
 >
-> Un message de retour à la normale suit dans les 5 minutes. Le prochain push sur `main` remettrait de toute façon le nombre de réplicas déclaré dans le dépôt.
+> Un message de retour à la normale suit dans les 5 minutes. Le prochain **Déployer** remettrait de toute façon le nombre de réplicas déclaré dans le dépôt.
 {.is-success}
