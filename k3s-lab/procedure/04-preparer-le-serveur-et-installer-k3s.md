@@ -1,5 +1,5 @@
 ---
-title: "Étape 4 · Préparer le serveur et installer k3s"
+title: "Étape 04 · Préparer le serveur et installer k3s"
 description: ""
 published: true
 date: 2026-11-02T12:00:00.000Z

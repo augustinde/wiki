@@ -1,5 +1,5 @@
 ---
-title: "Étape 6 · Contrôler les versions et commiter"
+title: "Étape 06 · Contrôler les versions et commiter"
 description: ""
 published: true
 date: 2026-11-02T12:00:00.000Z

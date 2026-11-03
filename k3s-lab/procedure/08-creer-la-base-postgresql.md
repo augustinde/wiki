@@ -1,5 +1,5 @@
 ---
-title: "Étape 8 · Créer la base PostgreSQL"
+title: "Étape 08 · Créer la base PostgreSQL"
 description: ""
 published: true
 date: 2026-11-02T12:00:00.000Z

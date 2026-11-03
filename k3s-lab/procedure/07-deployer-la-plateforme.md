@@ -1,5 +1,5 @@
 ---
-title: "Étape 7 · Déployer la plateforme"
+title: "Étape 07 · Déployer la plateforme"
 description: ""
 published: true
 date: 2026-11-02T12:00:00.000Z

@@ -1,5 +1,5 @@
 ---
-title: "Étape 0 · GitHub et dépôts d'applications"
+title: "Étape 00 · GitHub et dépôts d'applications"
 description: ""
 published: true
 date: 2026-11-02T12:00:00.000Z

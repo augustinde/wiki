@@ -1,5 +1,5 @@
 ---
-title: "Étape 2 · Réinstaller le VPS"
+title: "Étape 02 · Réinstaller le VPS"
 description: ""
 published: true
 date: 2026-11-02T12:00:00.000Z

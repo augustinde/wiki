@@ -1,5 +1,5 @@
 ---
-title: "Étape 9 · Service de démo et contrôle d'ensemble"
+title: "Étape 09 · Service de démo et contrôle d'ensemble"
 description: ""
 published: true
 date: 2026-11-02T12:00:00.000Z
