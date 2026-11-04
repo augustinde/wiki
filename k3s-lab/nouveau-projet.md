@@ -145,7 +145,7 @@ Deux projets peuvent vivre sur deux comptes Cloudflare (le tien et celui d'un cl
 | Tunnel dans le cluster | non : identifiants dans le `secrets.yaml` du projet | rien |
 | Jeton `github-deploy`, `make deploy-test` | non : créés dans le compte du projet, gardés dans ses secrets | un jeton par compte (Mise en route, 4.6) |
 | Tableau de bord Cloudflare | un compte par session | invite ton email comme membre du second compte (Manage Account, **Members**) : un sélecteur de compte apparaît ; sinon, deux profils de navigateur |
-| Client WARP | oui : une organisation Zero Trust active à la fois | bascule entre organisations (2, option A), ou WARP réservé à un compte (option B) |
+| Client WARP | oui : une organisation Zero Trust active à la fois | bascule entre organisations, ou WARP réservé à un compte (2) |
 
 Les routes privées des deux comptes sont indépendantes : chaque projet peut garder `10.43.0.96/28`. La règle d'une plage distincte ne vaut qu'à l'intérieur d'un même compte.
 
@@ -169,51 +169,9 @@ La fonction `projet` ([procédure, 5.2](/k3s-lab/procedure/05-piloter-le-cluster
 > **Vérifier** · Après `exec zsh` : `projet <dossier-1>`, puis `cloudflared tunnel list` affiche le tunnel du premier projet ; `projet <dossier-2>`, puis `cloudflared tunnel list`, uniquement les tunnels du second compte.
 {.is-success}
 
-### 2 · WARP avec deux organisations Zero Trust
+### 2 · WARP avec plusieurs organisations Zero Trust
 
-Chaque compte a son organisation Zero Trust (Mise en route, 4.1), et le client WARP n'est connecté qu'à une à la fois. Quand l'organisation d'un projet est active, l'autre projet perd ce qui passe par WARP : ses bases dans IntelliJ, et Rancher et Grafana si leur politique exige WARP. Les commandes `make` passent par SSH et ne sont pas concernées.
-
-**Option A : basculer entre les organisations.** C'est l'option à prendre si les deux projets ont besoin de WARP, par exemple pour un client avec des données sensibles.
-
-1. Dans le second compte : Mise en route, étapes 4.1 (son nom d'équipe) et 5.1 à 5.4.
-2. Sous Windows, dans PowerShell lancé **en administrateur**, déclare les deux équipes :
-
-```powershell
-@'
-<dict>
-  <key>configs</key>
-  <array>
-    <dict>
-      <key>organization</key>
-      <string>NOM-EQUIPE-1</string>
-      <key>display_name</key>
-      <string>Projet 1</string>
-    </dict>
-    <dict>
-      <key>organization</key>
-      <string>NOM-EQUIPE-2</string>
-      <key>display_name</key>
-      <string>Projet 2</string>
-    </dict>
-  </array>
-</dict>
-'@ | Out-File -Encoding utf8 C:\ProgramData\Cloudflare\mdm.xml
-Restart-Service CloudflareWARP
-```
-
-Remplace `NOM-EQUIPE-1` et `NOM-EQUIPE-2` par les noms d'équipe (Zero Trust, Settings, « Team domain » ; k3s-test : `augustin-lab`).
-
-3. Dans le client : **Paramètres**, **Avancé**, **Switch configurations** (« Changer de configuration »), choisis l'équipe et connecte-toi une première fois avec le code reçu par email. Ensuite, la bascule se fait en un clic, dans les deux sens.
-
-> **Vérifier** · La page **Profil** du client affiche le nom de l'équipe choisie, comme `https://help.teams.cloudflare.com`. Après une bascule, IntelliJ joint les bases du projet actif. La première connexion à une organisation peut demander de redémarrer le navigateur.
-{.is-success}
-
-**Option B : WARP réservé à un compte.** C'est plus simple quand le second projet n'a pas besoin de WARP, par exemple un projet perso ou de test. WARP reste sur la première organisation. Dans le second compte :
-
-- les applications Access de Rancher et Grafana gardent la politique email seule (`Augustin uniquement`), sans « + WARP » : la page Cloudflare et le code par email suffisent ;
-- les bases s'ouvrent sans WARP : `make db-forward DB=<base>` les expose sur `localhost:5432` par le tunnel SSH, et IntelliJ s'y connecte.
-
-Tu perds le second verrou de Rancher et Grafana (l'appareil inscrit à WARP), mais il n'y a rien à configurer dans le client.
+Chaque compte a son organisation Zero Trust, et le client WARP n'est connecté qu'à une à la fois : on les déclare toutes dans le client et on bascule, ou on réserve WARP à un compte. Les deux options : [Plusieurs organisations WARP sur un PC](/k3s-lab/acces/plusieurs-organisations-warp). La connexion par GitHub se met en place dans chaque organisation, avec la même application OAuth : [Connexion par GitHub](/k3s-lab/acces/connexion-github), étape 3.
 
 ## Reporter une amélioration du modèle
 

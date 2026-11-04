@@ -74,5 +74,5 @@ sops -d --extract '["cloudflare"]["tunnelCredentials"]' $ENV_DIR/secrets.yaml | 
 cloudflared tunnel route ip show | grep "$ROUTE"
 ```
 
-> **Vérifier** · La plage `$ROUTE` est routée vers le tunnel du projet. Dans Zero Trust, Access controls, Applications : les applications du projet existent, et **k3s API <cluster>** a les politiques `Augustin uniquement` et `GitHub deploy`.
+> **Vérifier** · La plage `$ROUTE` est routée vers le tunnel du projet. Dans Zero Trust, Access controls, Applications : les applications du projet existent, et **k3s API <cluster>** a les politiques `Équipe` et `GitHub deploy`.
 {.is-success}

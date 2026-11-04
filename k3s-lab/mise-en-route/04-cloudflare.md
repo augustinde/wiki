@@ -32,7 +32,7 @@ Un domaine est indispensable : le tunnel et Access fonctionnent sur des noms d'h
 1. Dans le tableau de bord, ouvre **Zero Trust**.
 2. Choisis un **nom d'équipe**, par exemple `augustin-lab` : ton portail sera `augustin-lab.cloudflareaccess.com`, et c'est ce nom que tu saisiras dans le client WARP. Il reste visible dans Zero Trust, Settings, « Team domain ».
 3. Offre **Free**. Cloudflare demande un moyen de paiement même pour l'offre gratuite, sans rien facturer.
-4. Settings, Authentication, Login methods : vérifie que **One-time PIN** est actif (code envoyé par email).
+4. Connexion : on se connecte avec GitHub, et seuls les membres d'une équipe de ton organisation GitHub passent. Mets-la en place maintenant : [Connexion par GitHub](/k3s-lab/acces/connexion-github), étapes 1 à 5 ; les étapes 6 et 7 correspondent à 4.7 et 5.1 ci-dessous.
 
 ## 4.2 · Créer le tunnel · par projet
 
@@ -156,37 +156,37 @@ Ce jeton permet aux jobs GitHub de tes applications d'atteindre l'API Kubernetes
 
 ## 4.7 · Applications Access · par projet
 
-Access place une page de connexion Cloudflare devant Rancher, Grafana et l'API Kubernetes : seule ton adresse email passe, et la requête n'atteint jamais le serveur sinon.
+Access place une page de connexion Cloudflare devant Rancher, Grafana et l'API Kubernetes : seuls les membres de l'équipe GitHub passent, et la requête n'atteint jamais le serveur sinon.
 
 **Une fois pour le compte, créer les politiques réutilisables** : Zero Trust, **Access controls**, **Policies**, **Add a policy** :
 
 | Champ | Valeur |
 | --- | --- |
-| Policy name | `Augustin uniquement` |
+| Policy name | `Équipe` |
 | Action | Allow |
 | Session duration | 24 hours |
-| Include | Emails = ton adresse |
+| Include | **GitHub organization** = `<org>`, équipe `<équipe>` ([Connexion par GitHub](/k3s-lab/acces/connexion-github), étape 6) |
 
-La politique **GitHub deploy** se crée de la même façon : Action **Service Auth**, Include **Service Token** = `github-deploy`. La politique `Augustin + WARP` vient à l'étape 5.4.
+La politique **GitHub deploy** se crée de la même façon : Action **Service Auth**, Include **Service Token** = `github-deploy`. La politique `Équipe + WARP` vient à l'étape 5.4.
 
 **Pour chaque projet, créer les trois applications** : Access controls, **Applications**, **Add an application**. Dans la fenêtre, garde l'onglet **Self-hosted and private** et la vignette **Public DNS** (les vignettes ne sont que des exemples), puis **Continue with Self-hosted and private**. Sur l'écran suivant :
 
 1. Application name.
 2. Destinations : **Add public hostname**, sous-domaine, ton domaine dans la liste, chemin vide.
 3. Access policies : celles du tableau.
-4. Login methods : **One-time PIN**, avec **Instant Auth** si c'est la seule méthode.
+4. Login methods : **GitHub** seulement, avec **Instant Auth** (redirection directe vers GitHub).
 5. Session duration : 24 heures. Le reste par défaut, puis **Save**.
 
 | Application name | Sous-domaine | Politiques |
 | --- | --- | --- |
-| `Rancher <cluster>` | `rancher<suffixe>` | `Augustin + WARP` (au tout premier projet : `Augustin uniquement`, remplacée à l'étape 5.4) |
+| `Rancher <cluster>` | `rancher<suffixe>` | `Équipe + WARP` (au tout premier projet : `Équipe`, remplacée à l'étape 5.4) |
 | `Grafana <cluster>` | `grafana<suffixe>` | idem |
-| `k3s API <cluster>` | `k8s-api<suffixe>` | `Augustin uniquement` **et** `GitHub deploy` |
+| `k3s API <cluster>` | `k8s-api<suffixe>` | `Équipe` **et** `GitHub deploy` |
 
 En profil `small`, sans Rancher, l'application Rancher est inutile.
 
 - `whoami<suffixe>` et les services publics du projet n'ont volontairement aucune application Access.
 - **k3s API** ne sert pas dans un navigateur : elle protège l'API Kubernetes publiée par le tunnel. Seuls les jobs GitHub, avec le jeton `github-deploy`, la traversent. Ton propre accès passe par SSH (`make tunnel`).
 
-> **Vérifier** · En navigation privée sur `https://rancher<suffixe>.<zone>` (ou `grafana<suffixe>`) : page de connexion de ton équipe, email, code à 6 chiffres, puis **erreur 1033** (normal sans cluster). Avec une autre adresse, aucun code n'arrive.
+> **Vérifier** · En navigation privée sur `https://rancher<suffixe>.<zone>` (ou `grafana<suffixe>`) : redirection vers GitHub, validation (passkey ou GitHub Mobile), puis **erreur 1033** (normal sans cluster). Avec un compte GitHub hors de l'équipe : « That account does not have access ».
 {.is-success}

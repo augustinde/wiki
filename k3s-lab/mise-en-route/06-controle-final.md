@@ -17,10 +17,11 @@ Quand la première liste est cochée pour le projet, passe à la [Procédure](/k
 - [ ] `make config-check` répond `Configuration cohérente.` (valeurs, IP, tunnel, route, bases, secrets chiffrés)
 - [ ] OIDC : chaque dépôt d'application est déclaré sous `tenants.<ns>.githubOidc` (3.5)
 - [ ] Secrets remplis : identifiants du tunnel, mots de passe Grafana et Rancher (3.6)
+- [ ] Connexion par GitHub : application OAuth, fournisseur d'identité testé, politiques sur l'équipe GitHub
 - [ ] Domaine actif chez Cloudflare (`dig NS $ZONE +short` montre les serveurs Cloudflare)
 - [ ] `cloudflared tunnel route ip show` liste `$ROUTE`, associée au tunnel `$CLUSTER`
 - [ ] DNS : joker `*` proxifié vers le tunnel, ou un nom par service pour un projet suivant (4.4)
-- [ ] Applications Access du projet ; Rancher et Grafana avec `Augustin + WARP`, API avec `GitHub deploy` (4.7)
+- [ ] Applications Access du projet ; Rancher et Grafana avec `Équipe + WARP`, API avec `GitHub deploy` (4.7)
 - [ ] WARP connecté à ton organisation Zero Trust, la route du projet hors des exclusions (5.3)
 - [ ] Dépôts d'applications prêts côté GitHub (procédure, étapes 0.1 à 0.3)
 
@@ -49,12 +50,12 @@ Si `Test-NetConnection` échoue, vérifie dans cet ordre : la route hors des exc
 | Le domaine ne répond plus après le changement de serveurs DNS | DNSSEC encore actif chez OVH | désactiver le DNSSEC chez OVH, ou remettre temporairement les serveurs OVH |
 | Emails coupés après la bascule | MX, SPF ou DKIM non importés | recopier ces enregistrements depuis la zone OVH, en DNS only |
 | Erreur 1033 sur un nom du projet | cloudflared non connecté (normal avant le cluster) | après le déploiement : `kubectl -n cloudflared logs deploy/cloudflared` |
-| « Inscription refusée » dans le client WARP | email absent de Device enrollment | vérifier l'étape 5.1 |
+| « Inscription refusée » dans le client WARP | compte hors de l'équipe, ou Device enrollment pas sur GitHub | vérifier l'étape 5.1 |
 | Le nom d'équipe est refusé | faute de frappe | Zero Trust, Settings, « Team domain » |
-| Le code email n'arrive pas | One-time PIN non activé | Settings, Authentication, Login methods |
+| Connexion GitHub refusée (« That account does not have access ») | compte hors de l'équipe, ou organisation non accordée à l'application | [Connexion par GitHub](/k3s-lab/acces/connexion-github), dépannage |
 | WSL perd Internet quand WARP est connecté | interaction entre WARP et le réseau NAT de WSL2 | dans `C:\Users\<toi>\.wslconfig`, section `[wsl2]` : `networkingMode=mirrored` et `dnsTunneling=true`, puis `wsl --shutdown` |
 | IP d'une base injoignable, WARP connecté | route du projet encore exclue, proxy inactif, ou route absente | étapes 5.3, 5.2 et 4.3 ; attendre 10 minutes |
-| Rancher accessible sans WARP | politique `Augustin uniquement` encore appliquée | remplacer par `Augustin + WARP` (5.4) |
+| Rancher accessible sans WARP | politique `Équipe` encore appliquée | remplacer par `Équipe + WARP` (5.4) |
 | Rancher refusé alors que WARP est connecté | client en mode DNS seul, ou contrôle Gateway absent | Service mode *Traffic and DNS* (5.3) ; vérifier 5.4 |
 | `route ip add` : chevauchement | plage déjà prise par un autre projet | autre `/28` dans `values.yaml` et `databases/*.yaml` (4.3) |
 | Erreur 1033 sur un nom d'un deuxième projet | le joker `*` vise le tunnel du premier | `cloudflared tunnel route dns` pour chaque nom (4.4) |

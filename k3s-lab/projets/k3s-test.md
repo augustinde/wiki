@@ -30,7 +30,7 @@ Projet de validation du modèle : un VPS OVH au Canada, deux applications de dé
 | Tunnel | `k3s-test`, ID `91ae490a-0122-4886-a590-c5d889916214` |
 | DNS | joker `*` proxifié vers le tunnel (premier projet de la zone) |
 | Route privée WARP | `10.43.0.96/28` |
-| Applications Access | `Rancher test` et `Grafana test` (`Augustin + WARP`), `k3s API test` (`Augustin uniquement` et `GitHub deploy`) |
+| Applications Access | `Rancher test` et `Grafana test` (`Équipe + WARP`), `k3s API test` (`Équipe` et `GitHub deploy`) |
 | Interfaces | `https://grafana-test.augustinde.dev`, `https://rancher-test.augustinde.dev`, `https://whoami-test.augustinde.dev` |
 
 ## Namespaces et bases
