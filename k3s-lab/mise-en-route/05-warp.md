@@ -8,7 +8,7 @@ editor: markdown
 dateCreated: 2026-11-02T12:00:00.000Z
 ---
 
-WARP relie ton Windows aux plages privées des clusters (les bases, sur la route `<route>` de chaque projet) et prouve à Cloudflare Access que ton navigateur passe par lui. Les réglages se font une fois : d'abord dans Zero Trust (5.1 à 5.4), puis sur ton PC (5.5 et 5.6). Pour un nouveau projet, seules les exclusions de 5.3 (liste précise) et les applications de 5.4 sont à reprendre.
+WARP relie ton Windows aux plages privées des clusters (les bases, sur la route `<route>` de chaque projet) et prouve à Cloudflare Access que ton navigateur passe par lui. Les réglages se font une fois : d'abord dans Zero Trust (5.1 à 5.4), puis sur ton PC (5.5 et 5.6). Pour un nouveau projet, seules les exclusions de 5.3 (liste précise) et les applications de 5.4 sont à reprendre. Projet sur un autre compte Cloudflare : son organisation Zero Trust est distincte, voir [Créer un projet](/k3s-lab/nouveau-projet), section « Projets sur plusieurs comptes Cloudflare ».
 
 ## 5.1 · Autoriser ton PC à s'inscrire
 

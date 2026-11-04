@@ -34,6 +34,12 @@ projet() {
   unset ENV NS
   [ -n "$2" ] && export ENV="$2"
   eval "$(make -s vars)" && export KUBECONFIG="$PWD/.kube/$CLUSTER.yaml"
+  # Certificat cloudflared du compte Cloudflare du projet, s'il a le sien (plusieurs comptes)
+  if [ -f ~/.cloudflared/$CLUSTER/cert.pem ]; then
+    export TUNNEL_ORIGIN_CERT=~/.cloudflared/$CLUSTER/cert.pem
+  else
+    unset TUNNEL_ORIGIN_CERT
+  fi
   echo "$CLUSTER ($ENV) : $IP"
 }
 EOF
@@ -41,7 +47,7 @@ exec zsh
 projet <projet>
 ```
 
-Supprime de `~/.zshrc` une ancienne ligne `export KUBECONFIG=…` s'il y en a une.
+Supprime de `~/.zshrc` une ancienne ligne `export KUBECONFIG=…` s'il y en a une. La fonction existe déjà ? Remplace-la par celle-ci dans `~/.zshrc` : elle choisit aussi le certificat `cloudflared` du projet quand tes projets sont sur plusieurs comptes Cloudflare.
 
 > **Vérifier**
 >
