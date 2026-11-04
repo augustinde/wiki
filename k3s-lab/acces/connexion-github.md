@@ -109,6 +109,8 @@ En navigation privée :
 > | client WARP, **Profil**, **Réauthentifier** | connexion par GitHub |
 > | `make deploy-test`, puis **Déployer** en test sur une application | inchangés : le jeton de service ne dépend pas de la connexion |
 > | Zero Trust, **Logs**, **Access** | tes connexions, méthode GitHub |
+>
+> *Si le résultat diffère, ne passe pas à la suite.*
 {.is-success}
 
 ## 9 · Finaliser
