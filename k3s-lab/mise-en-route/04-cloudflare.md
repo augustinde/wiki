@@ -38,30 +38,31 @@ Un domaine est indispensable : le tunnel et Access fonctionnent sur des noms d'h
 
 Le tunnel est la connexion que le cluster ouvrira lui-même vers Cloudflare. Ici, tu le déclares et tu récupères ses identifiants ; il ne tournera qu'après `make platform`.
 
-Une fois par poste :
+Une fois par compte Cloudflare :
 
 ```bash
 cloudflared tunnel login
 ```
 
-WSL n'a pas de navigateur : copie l'URL affichée dans ton navigateur Windows, choisis ton domaine, **Authorize**. Le fichier `~/.cloudflared/cert.pem` est créé : il permet de gérer les tunnels de ton compte, ne le partage pas et ne le commite pas.
+WSL n'a pas de navigateur : copie l'URL affichée dans ton navigateur Windows, choisis ton domaine, **Authorize**. Le fichier `~/.cloudflared/cert.pem` est créé : il permet de gérer les tunnels de ce compte, ne le partage pas et ne le commite pas. Projets répartis sur plusieurs comptes Cloudflare : un certificat par compte, voir [Créer un projet](/k3s-lab/nouveau-projet), section « Projets sur plusieurs comptes Cloudflare ».
 
-Puis, pour le projet :
+Puis, pour le projet, le tunnel et ses identifiants dans un dossier à son nom :
 
 ```bash
 cd ~/<projet> && eval "$(make -s vars)"
-cloudflared tunnel create $CLUSTER
+mkdir -p ~/.cloudflared/$CLUSTER
+cloudflared tunnel create --credentials-file ~/.cloudflared/$CLUSTER/tunnel.json $CLUSTER
 ```
 
-Cette commande crée le tunnel, affiche son **ID** (un UUID) et écrit ses identifiants dans `~/.cloudflared/<ID>.json`. Reporte les deux dans le dépôt :
+Cette commande crée le tunnel, affiche son **ID** (un UUID) et écrit ses identifiants dans `~/.cloudflared/<cluster>/tunnel.json`. Reporte les deux dans le dépôt :
 
 ```bash
-ID=$(cloudflared tunnel list | awk -v n="$CLUSTER" '$2 == n {print $1}')
+ID=$(jq -r .TunnelID ~/.cloudflared/$CLUSTER/tunnel.json)
 echo "$ID"
 sed -i "s/^  tunnelId: .*/  tunnelId: $ID/" $ENV_DIR/values.yaml
 
 # Identifiants dans le fichier de secrets chiffré (sops écrit la valeur sans risque d'indentation)
-sops set $ENV_DIR/secrets.yaml '["cloudflare"]["tunnelCredentials"]' "$(jq 'tojson' ~/.cloudflared/$ID.json)"
+sops set $ENV_DIR/secrets.yaml '["cloudflare"]["tunnelCredentials"]' "$(jq 'tojson' ~/.cloudflared/$CLUSTER/tunnel.json)"
 eval "$(make -s vars)"
 ```
 

@@ -106,7 +106,7 @@ Dans la [Mise en route, étape 4](/k3s-lab/mise-en-route/04-cloudflare), refais 
 
 | Section | Ce qui est créé |
 | --- | --- |
-| 4.2 | tunnel `<cluster>`, son ID dans `values.yaml`, ses identifiants dans `secrets.yaml` |
+| 4.2 | tunnel `<cluster>`, son ID dans `values.yaml`, ses identifiants dans `secrets.yaml` ; nouveau compte Cloudflare : son certificat d'abord (section « Projets sur plusieurs comptes Cloudflare ») |
 | 4.3 | route privée `<route>` vers le tunnel |
 | 4.4 | noms DNS du projet vers le tunnel |
 | 4.7 | applications Access Rancher, Grafana et API du projet |
@@ -125,7 +125,7 @@ Le serveur s'installe ensuite avec la [Procédure](/k3s-lab/procedure), à parti
 
 | Élément | Partagé ou par projet | Règle |
 | --- | --- | --- |
-| Zone, Zero Trust, WARP, politiques Access, jeton `github-deploy` | partagés | rien à refaire |
+| Zone, Zero Trust, WARP, politiques Access, jeton `github-deploy` | partagés | rien à refaire ; projets sur des comptes différents : section suivante |
 | Tunnel | par projet | nommé comme le cluster |
 | DNS | par projet | le joker `*` ne vise qu'un tunnel : il sert au premier projet de la zone ; les suivants déclarent chaque nom (4.4) ou utilisent une autre zone |
 | Route privée | par projet | `/28` sans chevauchement : `10.43.0.96/28`, puis `10.43.0.112/28`, `10.43.0.128/28`… |
@@ -134,6 +134,86 @@ Le serveur s'installe ensuite avec la [Procédure](/k3s-lab/procedure), à parti
 | Port du tunnel SSH | par projet si ouverts ensemble | `localApiPort` : `6443`, `6444`… |
 
 Chaque projet a son kubeconfig, `.kube/<cluster>.yaml` dans son dossier : `make` choisit toujours le bon.
+
+## Projets sur plusieurs comptes Cloudflare
+
+Deux projets peuvent vivre sur deux comptes Cloudflare (le tien et celui d'un client, par exemple). Sur ton PC, seuls deux éléments dépendent du compte ; le reste est déjà propre à chaque projet.
+
+| Élément | Lié au compte ? | À faire |
+| --- | --- | --- |
+| `cloudflared` dans WSL (`tunnel create`, `route ip`, `route dns`, `tunnel list`) | oui : un certificat par compte | un certificat par projet, choisi par `projet <dossier>` (1) |
+| Tunnel dans le cluster | non : identifiants dans le `secrets.yaml` du projet | rien |
+| Jeton `github-deploy`, `make deploy-test` | non : créés dans le compte du projet, gardés dans ses secrets | un jeton par compte (Mise en route, 4.6) |
+| Tableau de bord Cloudflare | un compte par session | invite ton email comme membre du second compte (Manage Account, **Members**) : un sélecteur de compte apparaît ; sinon, deux profils de navigateur |
+| Client WARP | oui : une organisation Zero Trust active à la fois | bascule entre organisations (2, option A), ou WARP réservé à un compte (option B) |
+
+Les routes privées des deux comptes sont indépendantes : chaque projet peut garder `10.43.0.96/28`. La règle d'une plage distincte ne vaut qu'à l'intérieur d'un même compte.
+
+### 1 · Un certificat `cloudflared` par compte
+
+`cloudflared tunnel login` écrit toujours `~/.cloudflared/cert.pem`, et `cloudflared` lit un autre certificat si la variable `TUNNEL_ORIGIN_CERT` l'indique. On range donc un certificat par projet, dans le dossier du cluster :
+
+```bash
+# Certificat actuel : celui du compte du premier projet
+mkdir -p ~/.cloudflared/<cluster-1>
+mv ~/.cloudflared/cert.pem ~/.cloudflared/<cluster-1>/cert.pem
+
+# Connexion au second compte : choisis un domaine de ce compte dans le navigateur
+cloudflared tunnel login
+mkdir -p ~/.cloudflared/<cluster-2>
+mv ~/.cloudflared/cert.pem ~/.cloudflared/<cluster-2>/cert.pem
+```
+
+La fonction `projet` ([procédure, 5.2](/k3s-lab/procedure/05-piloter-le-cluster-depuis-ton-poste)) exporte `TUNNEL_ORIGIN_CERT` quand `~/.cloudflared/<cluster>/cert.pem` existe. Deux projets sur un même compte partagent le même certificat : copie-le dans les deux dossiers.
+
+> **Vérifier** · Après `exec zsh` : `projet <dossier-1>`, puis `cloudflared tunnel list` affiche le tunnel du premier projet ; `projet <dossier-2>`, puis `cloudflared tunnel list`, uniquement les tunnels du second compte.
+{.is-success}
+
+### 2 · WARP avec deux organisations Zero Trust
+
+Chaque compte a son organisation Zero Trust (Mise en route, 4.1), et le client WARP n'est connecté qu'à une à la fois. Quand l'organisation d'un projet est active, l'autre projet perd ce qui passe par WARP : ses bases dans IntelliJ, et Rancher et Grafana si leur politique exige WARP. Les commandes `make` passent par SSH et ne sont pas concernées.
+
+**Option A : basculer entre les organisations.** C'est l'option à prendre si les deux projets ont besoin de WARP, par exemple pour un client avec des données sensibles.
+
+1. Dans le second compte : Mise en route, étapes 4.1 (son nom d'équipe) et 5.1 à 5.4.
+2. Sous Windows, dans PowerShell lancé **en administrateur**, déclare les deux équipes :
+
+```powershell
+@'
+<dict>
+  <key>configs</key>
+  <array>
+    <dict>
+      <key>organization</key>
+      <string>NOM-EQUIPE-1</string>
+      <key>display_name</key>
+      <string>Projet 1</string>
+    </dict>
+    <dict>
+      <key>organization</key>
+      <string>NOM-EQUIPE-2</string>
+      <key>display_name</key>
+      <string>Projet 2</string>
+    </dict>
+  </array>
+</dict>
+'@ | Out-File -Encoding utf8 C:\ProgramData\Cloudflare\mdm.xml
+Restart-Service CloudflareWARP
+```
+
+Remplace `NOM-EQUIPE-1` et `NOM-EQUIPE-2` par les noms d'équipe (Zero Trust, Settings, « Team domain » ; k3s-test : `augustin-lab`).
+
+3. Dans le client : **Paramètres**, **Avancé**, **Switch configurations** (« Changer de configuration »), choisis l'équipe et connecte-toi une première fois avec le code reçu par email. Ensuite, la bascule se fait en un clic, dans les deux sens.
+
+> **Vérifier** · La page **Profil** du client affiche le nom de l'équipe choisie, comme `https://help.teams.cloudflare.com`. Après une bascule, IntelliJ joint les bases du projet actif. La première connexion à une organisation peut demander de redémarrer le navigateur.
+{.is-success}
+
+**Option B : WARP réservé à un compte.** C'est plus simple quand le second projet n'a pas besoin de WARP, par exemple un projet perso ou de test. WARP reste sur la première organisation. Dans le second compte :
+
+- les applications Access de Rancher et Grafana gardent la politique email seule (`Augustin uniquement`), sans « + WARP » : la page Cloudflare et le code par email suffisent ;
+- les bases s'ouvrent sans WARP : `make db-forward DB=<base>` les expose sur `localhost:5432` par le tunnel SSH, et IntelliJ s'y connecte.
+
+Tu perds le second verrou de Rancher et Grafana (l'appareil inscrit à WARP), mais il n'y a rien à configurer dans le client.
 
 ## Reporter une amélioration du modèle
 
