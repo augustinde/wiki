@@ -12,7 +12,7 @@ WARP relie ton Windows aux plages privées des clusters (les bases, sur la route
 
 ## 5.1 · Autoriser ton PC à s'inscrire
 
-*Mot-clé de recherche : « Device enrollment ».* Zero Trust, **Team & Resources**, **Devices**, onglet Management (ou Settings), **Device enrollment permissions**, Manage. Ajoute une règle avec la politique **`Augustin uniquement`**, puis enregistre. Seule ton adresse peut inscrire un appareil.
+*Mot-clé de recherche : « Device enrollment ».* Zero Trust, **Team & Resources**, **Devices**, onglet Management (ou Settings), **Device enrollment permissions**, Manage. Ajoute une règle avec la politique **`Équipe`**, mets les **Login methods** sur GitHub seulement, puis enregistre. Seuls les membres de l'équipe GitHub peuvent inscrire un appareil.
 
 ## 5.2 · Activer le proxy Gateway
 
@@ -43,22 +43,24 @@ Les changements de profil mettent jusqu'à 10 minutes à arriver sur le client. 
 
 | Champ | Valeur |
 | --- | --- |
-| Policy name | `Augustin + WARP` |
+| Policy name | `Équipe + WARP` |
 | Action | Allow |
 | Session duration | 24 hours |
-| Include | Emails = ton adresse |
+| Include | **GitHub organization** = `<org>`, équipe `<équipe>` |
 | Require | Device posture (parfois nommé Gateway) = **Gateway** |
 
-3. **Applications** : Access controls, **Applications**. Dans **Rancher <cluster>**, remplace `Augustin uniquement` par `Augustin + WARP` et enregistre ; fais de même pour **Grafana <cluster>**. **k3s API <cluster>** garde `Augustin uniquement` (GitHub n'aura pas WARP). Les projets suivants reçoivent directement `Augustin + WARP` (4.7).
+3. **Applications** : Access controls, **Applications**. Dans **Rancher <cluster>**, remplace `Équipe` par `Équipe + WARP` et enregistre ; fais de même pour **Grafana <cluster>**. **k3s API <cluster>** garde `Équipe` (GitHub n'aura pas WARP). Les projets suivants reçoivent directement `Équipe + WARP` (4.7).
 
 Si le sélecteur Device posture ou Gateway n'apparaît pas dans le bloc Require, vérifie le proxy de l'étape 5.2.
 
 ## 5.5 · Installer le client sur Windows
 
+Même procédure pour un nouveau PC ou un collègue : [Installer le client WARP](/k3s-lab/acces/client-warp).
+
 1. Dans PowerShell : `winget install --id Cloudflare.Warp -e`, et accepte la demande administrateur. Sans winget, télécharge l'installeur du client **Cloudflare One** depuis la documentation Cloudflare Zero Trust.
 2. Au premier lancement, le client demande « Pour quoi souhaitez-vous utiliser le client ? » : choisis la colonne de droite, **Cloudflare One Client**, puis **Continuer**. La colonne « Navigation privée » est le WARP grand public (1.1.1.1), qui ignore ton organisation.
 3. Saisis ton **nom d'équipe** (`augustin-lab`, sans `.cloudflareaccess.com`).
-4. Le navigateur s'ouvre sur la page de ton équipe : email, puis code à 6 chiffres. Accepte de rouvrir le client.
+4. Le navigateur s'ouvre et redirige vers GitHub : passkey ou validation GitHub Mobile (à la première fois, **Grant** sur `<org>` puis **Authorize**). Accepte de rouvrir le client.
 5. Active l'interrupteur : le client affiche **Connecté**, avec le nom de ton organisation.
 
 Par la suite, le client se trouve dans la zone de notification (nuage orange) et se reconnecte au démarrage de Windows. Coupe-le à la main si le VPN d'un client entre en conflit.
@@ -73,10 +75,10 @@ Par la suite, le client se trouve dans la zone de notification (nuage orange) et
 
 | WARP | Résultat attendu |
 | --- | --- |
-| Connecté | Page Access, email, code, puis **erreur 1033** (normal sans cluster) |
-| Déconnecté | **Accès refusé**, même avec le bon email |
+| Connecté | connexion GitHub, puis **erreur 1033** (normal sans cluster) |
+| Déconnecté | **Accès refusé**, même avec le bon compte GitHub |
 
-Si l'accès passe WARP déconnecté, Rancher a encore la politique `Augustin uniquement` : reviens au 5.4.
+Si l'accès passe WARP déconnecté, Rancher a encore la politique `Équipe` : reviens au 5.4.
 
 4. **WSL** : WARP connecté, `curl -sI https://github.com | head -1` doit répondre `HTTP/2 200`. Sinon, voir le dépannage (réglage `networkingMode=mirrored`).
 

@@ -30,6 +30,7 @@ Le dépôt `augustinde/k3s-lab` est un **modèle** GitHub. Chaque projet en est 
 | Brancher GitHub, la prod, les alertes | [Procédure](/k3s-lab/procedure), étapes 10 à 14 |
 | Stocker des images publiques (S3 OVH) | [Procédure, étape 15](/k3s-lab/procedure/15-stockage-s3) |
 | Travailler au quotidien | [Gestion quotidienne](/k3s-lab/exploitation/gestion-quotidienne) |
+| Donner ou retirer un accès, installer WARP sur un PC | [Accès](/k3s-lab/acces) |
 | Bases bloquées après un redémarrage du serveur | [Incident AppArmor](/k3s-lab/exploitation/incident-apparmor) |
 | Comprendre un choix, dépanner | [Référence](/k3s-lab/reference/architecture) |
 
